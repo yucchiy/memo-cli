@@ -20,7 +20,7 @@ namespace Memo
             [DataMember(Name = "memo_creation_type")]
             public CreationType MemoCreationType = CreationType.Default;
             [DataMember(Name = "memo_filename_format")]
-            public string MemoFileNameFormat = "{{ date_time | date.to_string '%y%m%d' }}_{{ input_filename }}";
+            public string MemoFileNameFormat = "{{ target_date | date.to_string '%y%m%d' }}_{{ input_filename }}";
             [DataMember(Name = "memo_title_format")]
             public string MemoTitleFormat = "{{ input_title }} - {{ category }}";
         }
