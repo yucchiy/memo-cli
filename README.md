@@ -1,7 +1,7 @@
 # memo-cli
 
-This is a small CLI tool for managing Markdown notes.
-You can create/list notes using this tool on terminal.
+This is a small CLI tool for managing Markdown memos.
+You can create/list memos using this tool on terminal.
 
 ## Installation
 
@@ -10,6 +10,7 @@ Install memo-cli using .NET Tool.
 ```
 $ git clone git@github.com:yucchiy/memo-cli.git
 $ cd /path/to/memo-cli
+$ dotnet pack
 # install memo-cli as memo to local
 $ dotnet tool install memo --add-source ./src/Memo/.nupkg 
 # or install to global
@@ -18,7 +19,7 @@ $ dotnet tool install memo --global  --add-source ./src/Memo/.nupkg
 
 ## Usage
 
-`memo` provides subcommands for managing your markdown memos.
+`memo-cli` provides subcommands for managing your markdown memos.
 
 ### Directory structure
 
@@ -42,6 +43,10 @@ The Directory structure under MEMO_CLI_HOME is something like below.
 You can make a memo with the `new` (or `n`) command.
 
 ```
+$ memo-cli new 
+```
+
+```
 Usage:
   Memo new [options]
 
@@ -59,7 +64,7 @@ Options:
 
 ```
 Usage:
-  memo list [options]
+  Memo list [options]
 
 Options:
   -c, --category <category>    Filter list by category name with regular expression [default: ]
