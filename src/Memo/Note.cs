@@ -35,12 +35,13 @@ namespace Memo
             Category = category;
         }
 
-        public static async Task<string> GetTemplate(MemoConfig.CategoryConfig categoryConfig)
+        public static async Task<string> GetTemplate(string rootDirectory, MemoConfig.CategoryConfig categoryConfig)
         {
             var assembly = Assembly.GetExecutingAssembly();
+            System.Console.WriteLine(categoryConfig.MemoTemplateFilePath + ":" + categoryConfig.MemoFileNameFormat + ":" + categoryConfig.MemoTitleFormat);
             var stream = string.IsNullOrEmpty(categoryConfig.MemoTemplateFilePath) ?
-                new System.IO.StreamReader(assembly.GetManifestResourceStream($"Memo.res.{categoryConfig.MemoCreationType.ToString()}.md")) :
-                new System.IO.StreamReader(System.IO.File.OpenRead(categoryConfig.MemoTemplateFilePath));
+                new StreamReader(assembly.GetManifestResourceStream($"Memo.res.{categoryConfig.MemoCreationType.ToString()}.md")) :
+                new StreamReader(System.IO.File.OpenRead(Path.Combine(rootDirectory, categoryConfig.MemoTemplateFilePath)));
 
             return await stream.ReadToEndAsync();
         }

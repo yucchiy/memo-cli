@@ -72,6 +72,7 @@ namespace Memo
                         category.MemoTitleFormat = categoryConfig.MemoTitleFormat;
                     }
 
+                    category.MemoTemplateFilePath = categoryConfig.MemoTemplateFilePath;
                     return category;
                 }
             }
@@ -112,7 +113,7 @@ namespace Memo
                 return Cli.SuccessExitCode;
             }
 
-            var template = Scriban.Template.ParseLiquid(await Note.GetTemplate(categoryConfig));
+            var template = Scriban.Template.ParseLiquid(await Note.GetTemplate(CommandConfig.HomeDirectory.FullName, categoryConfig));
             await File.WriteAllTextAsync(
                 file.FullName,
                 (await template.RenderAsync(new { Title = meta.Title, Category = meta.Category, Created = meta.Created, TargetDate = targetDate }))
