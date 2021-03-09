@@ -23,6 +23,9 @@ namespace Memo
             public string MemoFileNameFormat = string.Empty;
             [DataMember(Name = "memo_title_format")]
             public string MemoTitleFormat = string.Empty;
+
+            [DataMember(Name = "memo_template_path")]
+            public string MemoTemplateFilePath = string.Empty;
         }
 
         public static CategoryConfig GetDefault(string categoryName, CreationType creationType)

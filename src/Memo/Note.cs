@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
 using System.Linq;
 using Markdig.Syntax;
 
@@ -31,6 +33,16 @@ namespace Memo
             File = filePath;
             Content = content;
             Category = category;
+        }
+
+        public static async Task<string> GetTemplate(MemoConfig.CategoryConfig categoryConfig)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var stream = string.IsNullOrEmpty(categoryConfig.MemoTemplateFilePath) ?
+                new System.IO.StreamReader(assembly.GetManifestResourceStream($"Memo.res.{categoryConfig.MemoCreationType.ToString()}.md")) :
+                new System.IO.StreamReader(System.IO.File.OpenRead(categoryConfig.MemoTemplateFilePath));
+
+            return await stream.ReadToEndAsync();
         }
     }
 }

@@ -101,10 +101,10 @@ namespace Memo
                 category.MemoFileNameFormat,
                 new { InputTitle = input.Title, InputFilename = input.Filename, Category = category.Name, Created = created, TargetDate = targetDate }
             );
-            return await CreateNote(new FileInfo(Path.Combine(CommandConfig.HomeDirectory.FullName, category.Name, $"{fileName}.markdown")), meta);
+            return await CreateNote(new FileInfo(Path.Combine(CommandConfig.HomeDirectory.FullName, category.Name, $"{fileName}.markdown")), meta, category, targetDate);
         }
 
-        private async Task<int> CreateNote(FileInfo file, NoteMetaData meta)
+        private async Task<int> CreateNote(FileInfo file, NoteMetaData meta, MemoConfig.CategoryConfig categoryConfig, DateTime targetDate)
         {
             await Output.WriteLineAsync(file.FullName);
             if (file.Exists)
@@ -112,7 +112,11 @@ namespace Memo
                 return Cli.SuccessExitCode;
             }
 
-            await File.WriteAllTextAsync(file.FullName, meta.ToText());
+            var template = Scriban.Template.ParseLiquid(await Note.GetTemplate(categoryConfig));
+            await File.WriteAllTextAsync(
+                file.FullName,
+                (await template.RenderAsync(new { Title = meta.Title, Category = meta.Category, Created = meta.Created, TargetDate = targetDate }))
+            );
             return Cli.SuccessExitCode;
         }
 
