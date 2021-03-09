@@ -61,15 +61,22 @@ namespace Memo
             {
                 if (categoryConfig.Name == categoryName)
                 {
-                    return categoryConfig;
+                    var category = MemoConfig.GetDefault(categoryName, categoryConfig.MemoCreationType);
+                    if (!string.IsNullOrEmpty(categoryConfig.MemoFileNameFormat))
+                    {
+                        category.MemoFileNameFormat = categoryConfig.MemoFileNameFormat;
+                    }
+
+                    if (!string.IsNullOrEmpty(categoryConfig.MemoTitleFormat))
+                    {
+                        category.MemoTitleFormat = categoryConfig.MemoTitleFormat;
+                    }
+
+                    return category;
                 }
             }
 
-            return new MemoConfig.CategoryConfig()
-            {
-                Name = categoryName,
-                MemoCreationType = CreationType.Default,
-            };
+            return MemoConfig.GetDefault(categoryName, CreationType.Default);
         }
 
         private async Task<int> CreateDefault(MemoConfig.CategoryConfig category, Input input, CancellationToken token) => await CreateNoteWithTargetDateTime(category, DateTime.Now, input, token);
