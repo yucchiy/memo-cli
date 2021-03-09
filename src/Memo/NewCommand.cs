@@ -102,11 +102,12 @@ namespace Memo
                 category.MemoFileNameFormat,
                 new { InputTitle = input.Title, InputFilename = input.Filename, Category = category.Name, Created = created, TargetDate = targetDate }
             );
-            return await CreateNote(new FileInfo(Path.Combine(CommandConfig.HomeDirectory.FullName, category.Name, $"{fileName}.markdown")), meta, category, targetDate);
+            return await CreateNote(fileName, meta, category, targetDate);
         }
 
-        private async Task<int> CreateNote(FileInfo file, NoteMetaData meta, MemoConfig.CategoryConfig categoryConfig, DateTime targetDate)
+        private async Task<int> CreateNote(string fileName, NoteMetaData meta, MemoConfig.CategoryConfig categoryConfig, DateTime targetDate)
         {
+            var file = new FileInfo(Path.Combine(CommandConfig.HomeDirectory.FullName, categoryConfig.Name, $"{fileName}.markdown"));
             await Output.WriteLineAsync(file.FullName);
             if (file.Exists)
             {
