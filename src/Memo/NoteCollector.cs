@@ -35,6 +35,8 @@ namespace Memo
             var notes = new List<Note>();
             foreach (var file in category.Path.GetFiles())
             {
+                if (file.Name.StartsWith('.')) continue;
+
                 if (Path.GetExtension(file.FullName) is string extension)
                 {
                     extension = extension.ToLower();
