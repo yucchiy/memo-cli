@@ -61,7 +61,18 @@ namespace Memo
                                 .Where(x => x.Slice.Length > 0)
                                 .Select(x => $"{x}\n")
                                 .Aggregate((line, aggrigation) => aggrigation + line);
-                            note.Meta = YamlDeserializer.Deserialize<NoteMetaData>(yamlText);
+                            try
+                            {
+                                note.Meta = YamlDeserializer.Deserialize<NoteMetaData>(yamlText);
+                            }
+                            catch (Exception _)
+                            {
+                                note.Meta = new NoteMetaData();
+                                note.Meta.Category = note.Category.Name;
+                                note.Meta.Title = note.ContentTitle;
+                                note.Meta.Created = DateTime.Now;
+                                note.Meta.Type = string.Empty;
+                            }
                         }
 
                         if (!string.IsNullOrEmpty(type))
