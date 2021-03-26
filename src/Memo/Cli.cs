@@ -34,6 +34,7 @@ namespace Memo
             MemoCommands = new IMemoCommand[]
             {
                 new NewCommand(),
+                new ConfigCommand(),
                 new ListCommand(),
                 new ListCategoryCommand(),
             };
