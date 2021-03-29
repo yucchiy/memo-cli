@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Yuichiro Mukai</Authors>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
     <PackageReference Include="Markdig.Signed" Version="0.23.0" />
     <PackageReference Include="Scriban.Signed" Version="3.5.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20574.7" />

@@ -37,6 +37,7 @@ namespace Memo
                 new ConfigCommand(),
                 new ListCommand(),
                 new ListCategoryCommand(),
+                new SaveCommand(),
             };
 
             foreach (var memoCommand in MemoCommands)
