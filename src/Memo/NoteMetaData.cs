@@ -13,6 +13,8 @@ namespace Memo
         [YamlMember(Alias = "type")]
         public string Type;
         [YamlMember(Alias = "created")]
+        public string Url;
+        [YamlMember(Alias = "url")]
         public DateTime Created;
     }
 }

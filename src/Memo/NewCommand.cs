@@ -68,6 +68,7 @@ namespace Memo
             if (!string.IsNullOrEmpty(input.Url))
             {
                 var uri = new Uri(input.Url);
+                var filename = uri.Host + "_" + Utility.LocalPath2Filename(uri.LocalPath);
                 using (var client = new HttpClient())
                 {
                     var response = await client.GetAsync(input.Url, token);
@@ -76,8 +77,8 @@ namespace Memo
                         HttpStatusCode.OK => new Input()
                         {
                             Category = input.Category,
-                            Title = Utility.TryParseTitle(await response.Content.ReadAsStringAsync(), out var title) ? title : "",
-                            Filename = uri.Host + "_" + Utility.LocalPath2Filename(uri.LocalPath),
+                            Title = Utility.TryParseTitle(await response.Content.ReadAsStringAsync(), out var title) ? title : filename,
+                            Filename = filename,
                             Url = input.Url,
                         },
                         _ => input,
@@ -132,6 +133,7 @@ namespace Memo
                 ),
                 Category = category.Name,
                 Created = DateTime.Now,
+                Url = string.IsNullOrEmpty(input.Url) ? string.Empty : input.Url,
             };
             var fileName = Utility.Format(
                 category.MemoFileNameFormat,
@@ -152,7 +154,7 @@ namespace Memo
             var template = Scriban.Template.ParseLiquid(await Note.GetTemplate(CommandConfig.HomeDirectory.FullName, categoryConfig));
             await File.WriteAllTextAsync(
                 file.FullName,
-                (await template.RenderAsync(new { Title = meta.Title, Category = meta.Category, Created = meta.Created, TargetDate = targetDate }))
+                (await template.RenderAsync(new { Title = meta.Title, Category = meta.Category, Created = meta.Created, TargetDate = targetDate, Url = meta.Url }))
             );
             return Cli.SuccessExitCode;
         }
