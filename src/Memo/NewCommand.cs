@@ -4,6 +4,8 @@ using System.IO;
 using System.CommandLine;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net;
+using System.Net.Http;
 
 namespace Memo
 {
@@ -14,6 +16,7 @@ namespace Memo
             public string Title { get; set; }
             public string Category { get; set; }
             public string Filename { get; set; }
+            public string Url { get; set; }
         }
 
         protected override Command CreateCommand()
@@ -32,6 +35,10 @@ namespace Memo
                     new string[] {"--filename", "-f"},
                     "File name of note. It automatically adds '.markdown' file extension if omitted"
                 ),
+                new Option<string>(
+                    new string[] {"--url"},
+                    "Collect title and filename from url. If this option specificated, title and filename will be override."
+                ),
             };
             command .AddAlias("n");
 
@@ -40,6 +47,7 @@ namespace Memo
 
         protected override async Task<int> ExecuteCommand(Input input, CancellationToken token)
         {
+            input = await NormalizeInputAsync(input, token);
             var selectedCategory = GetOrCreateCategory(input.Category);
             var category = FindCategoryConfigOrGetDefault(selectedCategory.Name);
             switch (category.MemoCreationType)
@@ -53,6 +61,33 @@ namespace Memo
             }
 
             return Cli.FailedExitCode;
+        }
+
+        private async Task<Input> NormalizeInputAsync(Input input, CancellationToken token)
+        {
+            if (!string.IsNullOrEmpty(input.Url))
+            {
+                var uri = new Uri(input.Url);
+                using (var client = new HttpClient())
+                {
+                    var response = await client.GetAsync(input.Url, token);
+                    return response.StatusCode switch
+                    {
+                        HttpStatusCode.OK => new Input()
+                        {
+                            Category = input.Category,
+                            Title = Utility.TryParseTitle(await response.Content.ReadAsStringAsync(), out var title) ? title : "",
+                            Filename = uri.Host + "_" + Utility.LocalPath2Filename(uri.LocalPath),
+                            Url = input.Url,
+                        },
+                        _ => input,
+                    };
+                }
+            }
+            else
+            {
+                return input;
+            }
         }
 
         private MemoConfig.CategoryConfig FindCategoryConfigOrGetDefault(string categoryName)
