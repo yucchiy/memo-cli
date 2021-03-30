@@ -72,7 +72,7 @@ namespace Memo
                 }
                 else
                 {
-                    notes.AddRange(await noteCollector.Collect(category));
+                    notes.AddRange(await noteCollector.Collect(category, input.Type));
                 }
             }
 
