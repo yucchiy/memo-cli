@@ -68,7 +68,7 @@ namespace Memo
             if (!string.IsNullOrEmpty(input.Url))
             {
                 var uri = new Uri(input.Url);
-                var filename = uri.Host + "_" + Utility.LocalPath2Filename(uri.LocalPath);
+                var filename = (uri.Host + "-" + uri.LocalPath.Trim('/')).Replace('/', '_');
                 using (var client = new HttpClient())
                 {
                     var response = await client.GetAsync(input.Url, token);
