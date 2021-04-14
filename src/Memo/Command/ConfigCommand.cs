@@ -29,12 +29,12 @@ namespace Memo
             switch (input.Key)
             {
                 case "home":
-                    await Output.WriteLineAsync(CommandConfig.HomeDirectory.FullName);
+                    await Context.Output.WriteLineAsync(Context.CommandConfig.HomeDirectory.FullName);
                     break;
                 default:
                     using (var _ = new UseColor(System.ConsoleColor.Red))
                     {
-                        await Output.WriteLineAsync(string.Format("{0}: No such config found.", input.Key));
+                        await Context.Output.WriteLineAsync(string.Format("{0}: No such config found.", input.Key));
                     }
 
                     return Cli.FailedExitCode;

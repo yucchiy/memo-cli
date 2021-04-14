@@ -9,23 +9,41 @@ namespace Memo
     public abstract class CommandBase<TInputType> : IMemoCommand
         where TInputType : CommandInput
     {
-        protected Cli Cli { get; set; }
-        protected Category[] Categories { get => Cli.Categories; }
-        protected CommandConfig CommandConfig { get => Cli.CommandConfig; }
-        protected TextWriter Output { get => Cli.Output; }
-        protected IConsole Console { get; set; }
+        public class MemoContext
+        {
+            public MemoManager MemoManager { get; }
+            public CommandConfig CommandConfig { get; }
+            public TextWriter Output { get; }
+            public IConsole Console { get; }
+
+            public MemoContext(MemoManager memoManager, CommandConfig commandConfig, TextWriter output)
+            {
+                MemoManager = memoManager;
+                CommandConfig = commandConfig;
+                Output = output;
+            }
+        }
+
+        public MemoContext Context { get; private set; }
 
         public void Setup(Cli cli)
         {
-            Cli = cli;
             var command = CreateCommand();
-            command.Handler = CommandHandler.Create(async (TInputType input, IConsole console, CancellationToken token) => await Execute(input, console, token));
-            Cli.RootCommand.AddCommand(command);
+            command.Handler = CommandHandler.Create(async (TInputType input, CancellationToken token) => await Execute(input, token));
+            cli.RootCommand.AddCommand(command);
+
+            Context = new MemoContext(
+                new MemoManager(new MemoManager.Configuration()
+                {
+                    HomeDirectory = cli.CommandConfig.HomeDirectory
+                }),
+                cli.CommandConfig,
+                cli.Output
+            );
         }
 
-        public async Task<int> Execute(TInputType input, IConsole console, CancellationToken token)
+        public async Task<int> Execute(TInputType input, CancellationToken token)
         {
-            Console = console;
             if (input.NoColor)
             {
                 UseColor.NoColor = true;
@@ -39,15 +57,15 @@ namespace Memo
             {
                 using (var _ = new UseColor(System.ConsoleColor.Red))
                 {
-                    await Output.WriteLineAsync(memoCliException.Message);
+                    await Context.Output.WriteLineAsync(memoCliException.Message);
                 }
             }
             catch (System.Exception unhandledException)
             {
                 using (var _ = new UseColor(System.ConsoleColor.Red))
                 {
-                    await Output.WriteLineAsync(string.Format("Internal Error: {0}({1})", unhandledException.GetType().ToString(), unhandledException.Message));
-                    await Output.WriteLineAsync(string.Format("{0}", unhandledException.StackTrace));
+                    await Context.Output.WriteLineAsync(string.Format("Internal Error: {0}({1})", unhandledException.GetType().ToString(), unhandledException.Message));
+                    await Context.Output.WriteLineAsync(string.Format("{0}", unhandledException.StackTrace));
                 }
             }
 
@@ -61,7 +79,7 @@ namespace Memo
         {
             using (var alertColor = new UseColor(System.ConsoleColor.Red))
             {
-                Output.WriteLine(message);
+                Context.Output.WriteLine(message);
             }
         }
     }

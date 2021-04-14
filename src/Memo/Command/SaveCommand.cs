@@ -27,7 +27,7 @@ namespace Memo
 
         protected override async Task<int> ExecuteCommand(Input input, CancellationToken token)
         {
-            using (var repository = new LibGit2Sharp.Repository(CommandConfig.HomeDirectory.FullName))
+            using (var repository = new LibGit2Sharp.Repository(Context.CommandConfig.HomeDirectory.FullName))
             {
                 if (!input.NoSync && !(await Pull(token))) return Cli.FailedExitCode;
                 if (!(await AddAllAndCommit(repository, token))) return Cli.FailedExitCode;
@@ -39,7 +39,7 @@ namespace Memo
 
         private async Task<bool> Pull(CancellationToken token)
         {
-            using var git = new GitCommand(CommandConfig, "pull");
+            using var git = new GitCommand(Context.CommandConfig, "pull");
             switch (await git.Execute(token))
             {
                 case GitCommand.SuccessExitCode:
@@ -47,12 +47,12 @@ namespace Memo
                 default:
                     using (var _ = new UseColor(System.ConsoleColor.Red))
                     {
-                        await Output.WriteLineAsync("Failed to execute pull command following reason.");
+                        await Context.Output.WriteLineAsync("Failed to execute pull command following reason.");
                     }
 
                     using (var _ = new UseColor(System.ConsoleColor.Yellow))
                     {
-                        await Output.WriteLineAsync(await git.CollectStandardError());
+                        await Context.Output.WriteLineAsync(await git.CollectStandardError());
                     }
                     return false;
             }
@@ -80,7 +80,7 @@ namespace Memo
             {
                 foreach (var item in status)
                 {
-                    await Output.WriteLineAsync(item.FilePath);
+                    await Context.Output.WriteLineAsync(item.FilePath);
                     count++;
                 }
 
@@ -101,7 +101,7 @@ namespace Memo
 
         private async Task<string> GetGitConfig(string property, CancellationToken token)
         {
-            using var git = new GitCommand(CommandConfig, $"config {property}");
+            using var git = new GitCommand(Context.CommandConfig, $"config {property}");
             switch (await git.Execute(token))
             {
                 case GitCommand.SuccessExitCode:
@@ -109,11 +109,11 @@ namespace Memo
                 default:
                     using (var _ = new UseColor(System.ConsoleColor.Red))
                     {
-                        await Output.WriteLineAsync("Failed to execute config command following reason.");
+                        await Context.Output.WriteLineAsync("Failed to execute config command following reason.");
                     }
                     using (var _ = new UseColor(System.ConsoleColor.Yellow))
                     {
-                        await Output.WriteLineAsync(await git.CollectStandardError());
+                        await Context.Output.WriteLineAsync(await git.CollectStandardError());
                     }
 
                     throw new MemoCliException($"Failed to execute config command. property = {property}");
@@ -122,7 +122,7 @@ namespace Memo
 
         private async Task<bool> Push(CancellationToken token)
         {
-            using var git = new GitCommand(CommandConfig, "push");
+            using var git = new GitCommand(Context.CommandConfig, "push");
             switch (await git.Execute(token))
             {
                 case GitCommand.SuccessExitCode:
@@ -130,11 +130,11 @@ namespace Memo
                 default:
                     using (var _ = new UseColor(System.ConsoleColor.Red))
                     {
-                        await Output.WriteLineAsync("Failed to execute push command following reason.");
+                        await Context.Output.WriteLineAsync("Failed to execute push command following reason.");
                     }
                     using (var _ = new UseColor(System.ConsoleColor.Yellow))
                     {
-                        await Output.WriteLineAsync(await git.CollectStandardError());
+                        await Context.Output.WriteLineAsync(await git.CollectStandardError());
                     }
                     return false;
             }

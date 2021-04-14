@@ -32,7 +32,7 @@ namespace Memo
         {
             foreach (var category in CollectCategories(input.Category))
             {
-                await Output.WriteAsync(string.Format("{0}\n", category.Name));
+                await Context.Output.WriteAsync(string.Format("{0}\n", category.Name));
             }
 
             return Cli.SuccessExitCode;
@@ -40,9 +40,10 @@ namespace Memo
 
         private Category[] CollectCategories(string categoryPattern)
         {
-            if (string.IsNullOrEmpty(categoryPattern)) return Categories;
+            var categories = Context.MemoManager.GetCategories();
+            if (string.IsNullOrEmpty(categoryPattern)) return categories;
 
-            return Categories
+            return categories
                 .Where(category => Regex.IsMatch(category.Name, categoryPattern))
                 .OrderBy(category => category.Name)
                 .ToArray();

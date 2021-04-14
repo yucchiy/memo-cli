@@ -93,7 +93,7 @@ namespace Memo
 
         private MemoConfig.CategoryConfig FindCategoryConfigOrGetDefault(string categoryName)
         {
-            foreach (var categoryConfig in CommandConfig.MemoConfig.Categories)
+            foreach (var categoryConfig in Context.CommandConfig.MemoConfig.Categories)
             {
                 if (categoryConfig.Name == categoryName)
                 {
@@ -144,14 +144,14 @@ namespace Memo
 
         private async Task<int> CreateNote(string fileName, NoteMetaData meta, MemoConfig.CategoryConfig categoryConfig, DateTime targetDate)
         {
-            var file = new FileInfo(Path.Combine(CommandConfig.HomeDirectory.FullName, categoryConfig.Name, $"{fileName}.markdown"));
-            await Output.WriteLineAsync(file.FullName);
+            var file = new FileInfo(Path.Combine(Context.CommandConfig.HomeDirectory.FullName, categoryConfig.Name, $"{fileName}.markdown"));
+            await Context.Output.WriteLineAsync(file.FullName);
             if (file.Exists)
             {
                 return Cli.SuccessExitCode;
             }
 
-            var template = Scriban.Template.ParseLiquid(await Note.GetTemplate(CommandConfig.HomeDirectory.FullName, categoryConfig));
+            var template = Scriban.Template.ParseLiquid(await Note.GetTemplate(Context.CommandConfig.HomeDirectory.FullName, categoryConfig));
             await File.WriteAllTextAsync(
                 file.FullName,
                 (await template.RenderAsync(new { Title = meta.Title, Category = meta.Category, Created = meta.Created, TargetDate = targetDate, Url = meta.Url }))
@@ -161,11 +161,11 @@ namespace Memo
 
         private Category GetOrCreateCategory(string categoryName)
         {
-            var result = Categories
+            var result = Context.MemoManager.GetCategories()
                 .Where(category => category.Name == categoryName);
             if (result.Any()) return result.First();
 
-            var path = Utility.CategoryName2CategoryAbsoluteDirectoryPath(CommandConfig, categoryName);
+            var path = Utility.CategoryName2CategoryAbsoluteDirectoryPath(Context.CommandConfig, categoryName);
 
             return Directory.Exists(path) ?
                new Category(categoryName, new DirectoryInfo(path)) :

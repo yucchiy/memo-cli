@@ -60,19 +60,18 @@ namespace Memo
         private async Task<List<Note>> CollectNotes(Input input, CancellationToken token)
         {
             var notes = new List<Note>();
-            var noteCollector = new NoteCollector();
-            foreach (var category in Categories)
+            foreach (var category in Context.MemoManager.GetCategories())
             {
                 if (!string.IsNullOrEmpty(input.Category))
                 {
                     if (Regex.IsMatch(category.Name, input.Category))
                     {
-                        notes.AddRange(await noteCollector.Collect(category, input.Type));
+                        notes.AddRange(await Context.MemoManager.GetNotes(category, input.Type));
                     }
                 }
                 else
                 {
-                    notes.AddRange(await noteCollector.Collect(category, input.Type));
+                    notes.AddRange(await Context.MemoManager.GetNotes(category, input.Type));
                 }
             }
 
@@ -85,12 +84,12 @@ namespace Memo
             foreach (var note in notes)
             {
                 var path = withRelativePath ? ToRelativePath(note.File) : note.File.FullName;
-                await Output.WriteLineAsync(template.Render(new { Path = path, Category = note.Category.Name, Type = note.Meta?.Type, Created = note.Meta?.Created, Modified = note.Modified, Title = note.Meta?.Title }));
+                await Context.Output.WriteLineAsync(template.Render(new { Path = path, Category = note.Category.Name, Type = note.Meta?.Type, Created = note.Meta?.Created, Modified = note.Modified, Title = note.Meta?.Title }));
             }
             
             return Cli.SuccessExitCode;
         }
 
-        private string ToRelativePath(FileInfo filePath) => Path.GetRelativePath(CommandConfig.HomeDirectory.FullName, filePath.FullName);
+        private string ToRelativePath(FileInfo filePath) => Path.GetRelativePath(Context.CommandConfig.HomeDirectory.FullName, filePath.FullName);
     }
 }
