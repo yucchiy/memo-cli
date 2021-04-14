@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.CommandLine;
-using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
+using System.CommandLine.Builder;
 using System.IO;
 
 namespace Memo
@@ -49,6 +50,17 @@ namespace Memo
         public async Task<int> Execute(string[] arguments)
         {
             return await RootCommand.InvokeAsync(arguments);
+        }
+
+        public static Parser CreateCommandLineParser()
+        {
+            var cli = new Cli();
+
+            return new CommandLineBuilder(
+                cli.RootCommand
+            )
+                .UseDefaults()
+                .Build();
         }
     }
 }

@@ -1,11 +1,13 @@
-﻿namespace Memo
+﻿using System.CommandLine.Parsing;
+using System.Threading.Tasks;
+
+namespace Memo
 {
     class Program
     {
-        static int Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
-            var cli = new Cli();
-            return cli.Execute(args).Result;
+            return await Cli.CreateCommandLineParser().InvokeAsync(args);
         }
     }
 }
