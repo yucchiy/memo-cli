@@ -66,12 +66,12 @@ namespace Memo
                 {
                     if (Regex.IsMatch(category.Name, input.Category))
                     {
-                        notes.AddRange(await Context.MemoManager.GetNotes(category, input.Type));
+                        notes.AddRange(await Context.MemoManager.GetNotesAsync(category, input.Type));
                     }
                 }
                 else
                 {
-                    notes.AddRange(await Context.MemoManager.GetNotes(category, input.Type));
+                    notes.AddRange(await Context.MemoManager.GetNotesAsync(category, input.Type));
                 }
             }
 

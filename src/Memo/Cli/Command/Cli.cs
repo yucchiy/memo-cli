@@ -13,7 +13,6 @@ namespace Memo
 
         public RootCommand RootCommand { get; }
         public CommandConfig CommandConfig { get; }
-        public Category[] Categories { get; }
         public TextWriter Output { get; }
         private IMemoCommand[] MemoCommands { get; }
 
@@ -29,8 +28,6 @@ namespace Memo
 
             CommandConfig = new CommandConfig();
             Output = System.Console.Out;
-
-            Categories = new CategoryCollector().Collect(CommandConfig.HomeDirectory);
 
             MemoCommands = new IMemoCommand[]
             {

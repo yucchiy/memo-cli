@@ -8,9 +8,9 @@ namespace Memo
 {
     public static class Utility
     {
-        public static string CategoryName2CategoryAbsoluteDirectoryPath(CommandConfig commandConfig, string categoryName)
+        public static string CategoryName2CategoryAbsoluteDirectoryPath(DirectoryInfo homeDirectory, string categoryName)
         {
-            return Path.Combine(commandConfig.HomeDirectory.FullName, categoryName);
+            return Path.Combine(homeDirectory.FullName, categoryName);
         }
 
         public static DateTime FirstDayOfWeek()

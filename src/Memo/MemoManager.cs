@@ -1,30 +1,42 @@
+using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
 
 namespace Memo
 {
-    public class MemoManager
+    public class MemoManager : IMemoManager
     {
-        private NoteCollector Note { get; }
-        private CategoryCollector Category { get; }
+        private NoteCollector NoteCollector { get; }
+        private NoteCreator NoteCreator { get; }
+        private CategoryConfigFinder CategoryConfigFinder { get; }
+        private CategoryCreator CategoryCreator { get; }
+        private CategoryCollector CategoryCollector { get; }
         private Configuration Config { get; }
 
-        public MemoManager(Configuration config)
+        public MemoManager()
         {
-            Note = new NoteCollector();
-            Category = new CategoryCollector();
-            Config = config;
+            // TODO: Fix
+            var commandConfig = new CommandConfig();
+            CategoryConfigFinder = new CategoryConfigFinder(commandConfig);
+            CategoryCollector = new CategoryCollector(CategoryConfigFinder, commandConfig);
+            CategoryCreator = new CategoryCreator(CategoryCollector, CategoryConfigFinder, commandConfig);
+            NoteCollector = new NoteCollector();
+            NoteCreator = new NoteCreator(NoteCollector, CategoryCreator, CategoryCollector, commandConfig);
+            Config = new Configuration()
+            {
+                HomeDirectory = commandConfig.HomeDirectory
+            };
         }
 
-        public Category[] GetCategories()
-        {
-            return Category.Collect(Config.HomeDirectory);
-        }
+        public Category CreateCategory(string categoryName) => CategoryCreator.Create(categoryName);
 
-        public async Task<Note[]> GetNotes(Category category, string type)
-        {
-            return await Note.Collect(category, type);
-        }
+        public Category GetCategory(string categoryName) => CategoryCollector.Find(categoryName);
+
+        public Category[] GetCategories() => CategoryCollector.Collect(Config.HomeDirectory);
+
+        public async Task<Note[]> GetNotesAsync(Category category, string type) => await NoteCollector.Collect(category, type);
+
+        public async Task<Note> CreateNoteAsync(NoteCreationParameter input, CancellationToken token) => await NoteCreator.CreateNoteAsync(input, token);
 
         public class Configuration
         {

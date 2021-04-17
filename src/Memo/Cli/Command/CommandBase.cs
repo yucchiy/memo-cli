@@ -33,10 +33,7 @@ namespace Memo
             cli.RootCommand.AddCommand(command);
 
             Context = new MemoContext(
-                new MemoManager(new MemoManager.Configuration()
-                {
-                    HomeDirectory = cli.CommandConfig.HomeDirectory
-                }),
+                new MemoManager(),
                 cli.CommandConfig,
                 cli.Output
             );

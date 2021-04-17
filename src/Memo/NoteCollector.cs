@@ -65,14 +65,18 @@ namespace Memo
                             {
                                 note.Meta = YamlDeserializer.Deserialize<NoteMetaData>(yamlText);
                             }
-                            catch (Exception _)
+                            catch (Exception)
                             {
-                                note.Meta = new NoteMetaData();
-                                note.Meta.Category = note.Category.Name;
-                                note.Meta.Title = note.ContentTitle;
-                                note.Meta.Created = DateTime.Now;
-                                note.Meta.Type = string.Empty;
                             }
+                        }
+
+                        if (note.Meta == null)
+                        {
+                            note.Meta = new NoteMetaData();
+                            note.Meta.Category = note.Category.Name;
+                            note.Meta.Title = note.ContentTitle;
+                            note.Meta.Created = DateTime.Now;
+                            note.Meta.Type = string.Empty;
                         }
 
                         if (!string.IsNullOrEmpty(type))
@@ -87,6 +91,14 @@ namespace Memo
             }
 
             return notes.ToArray();
+        }
+
+        public async Task<Note> Find(string filePath, Category category, string type)
+        {
+            var notes = await Collect(category, type);
+            return notes
+                .Where(note => note.File.FullName == filePath)
+                .FirstOrDefault();
         }
 
         public static int CompareByModified(Note a, Note b) => DateTime.Compare(a.Modified, b.Modified);
