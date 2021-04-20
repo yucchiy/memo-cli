@@ -36,7 +36,7 @@ namespace Memo
 
         public async Task<Note[]> GetNotesAsync(Category category, string type) => await NoteCollector.Collect(category, type);
 
-        public async Task<Note> CreateNoteAsync(NoteCreationParameter input, CancellationToken token) => await NoteCreator.CreateNoteAsync(input, token);
+        public async Task<Note> CreateNoteAsync(NoteCreationParameter parameter, CancellationToken token) => await NoteCreator.CreateNoteAsync(parameter, token);
 
         public class Configuration
         {

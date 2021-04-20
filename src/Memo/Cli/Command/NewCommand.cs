@@ -51,6 +51,18 @@ namespace Memo
             },
             token);
 
+            if (input.NoColor)
+            {
+                await Context.Output.WriteLineAsync($"{note.File.FullName}");
+            }
+            else
+            {
+                using (new UseColor(System.ConsoleColor.Green))
+                {
+                    await Context.Output.WriteLineAsync($"Created {note.File.FullName}");
+                }
+            }
+
             return Cli.SuccessExitCode;
         }
     }

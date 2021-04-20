@@ -16,9 +16,9 @@ namespace Memo
 
         public NoteCreator(NoteCollector noteCollector, CategoryCreator categoryCreator, CategoryCollector categoryCollector, CommandConfig config)
         {
-            NoteCollector = NoteCollector;
-            CategoryCreator = CategoryCreator;
-            CategoryCollector = CategoryCollector;
+            NoteCollector = noteCollector;
+            CategoryCreator = categoryCreator;
+            CategoryCollector = categoryCollector;
             Config = config;
         }
 

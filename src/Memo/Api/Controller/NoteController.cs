@@ -9,16 +9,18 @@ namespace Memo
 {
     [ApiController]
     [Route("[Controller]")]
-    public class MemoController : ControllerBase
+    public class NoteController : ControllerBase
     {
         private IMemoManager _memoManager;
-        public MemoController(IMemoManager memoManager)
+        public NoteController(IMemoManager memoManager)
         {
             _memoManager = memoManager;
         }
 
         [HttpGet]
-        public async Task<IEnumerable<MemoResponse>> GetAsync([FromQuery(Name = "category")] string categoryString, [FromQuery(Name = "type")] string typeString)
+        public async Task<IEnumerable<MemoResponse>> GetAsync(
+            [FromQuery(Name = "category")] string categoryString,
+            [FromQuery(Name = "type")] string typeString)
         {
             var response = new List<MemoResponse>();
 
@@ -40,7 +42,8 @@ namespace Memo
         }
 
         [HttpPost]
-        public async Task<MemoResponse> CreateAsync([FromBody] MemoCreationRequest request)
+        public async Task<MemoResponse> CreateAsync(
+            [FromBody] MemoCreationRequest request)
         {
             var note = await _memoManager.CreateNoteAsync(new NoteCreationParameter()
             {
@@ -63,9 +66,9 @@ namespace Memo
         {
             [Required]
             public string Category { get; set; }
-            public string? Title { get ; set; }
-            public string? FileName { get ; set; }
-            public string? Url { get ; set; }
+            public string Title { get ; set; }
+            public string FileName { get ; set; }
+            public string Url { get ; set; }
         }
 
         public class MemoResponse
