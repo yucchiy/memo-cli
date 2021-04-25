@@ -20,7 +20,7 @@ namespace Memo
             CategoryConfigFinder = new CategoryConfigFinder(commandConfig);
             CategoryCollector = new CategoryCollector(CategoryConfigFinder, commandConfig);
             CategoryCreator = new CategoryCreator(CategoryCollector, CategoryConfigFinder, commandConfig);
-            NoteCollector = new NoteCollector();
+            NoteCollector = new NoteCollector(CategoryCollector);
             NoteCreator = new NoteCreator(NoteCollector, CategoryCreator, CategoryCollector, commandConfig);
             Config = new Configuration()
             {

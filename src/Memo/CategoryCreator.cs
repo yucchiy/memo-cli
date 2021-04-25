@@ -1,6 +1,4 @@
 using System.IO;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Memo
 {
@@ -25,9 +23,8 @@ namespace Memo
             var path = Utility.CategoryName2CategoryAbsoluteDirectoryPath(Config.HomeDirectory, categoryName);
             var config = ConfigFinder.FindOrDefault(categoryName);
             return Directory.Exists(path) ?
-               new Category(categoryName, new DirectoryInfo(path), config) :
-               new Category(categoryName, Directory.CreateDirectory(path), config);
+               new Category(categoryName, new DirectoryInfo(path), config, null) :
+               new Category(categoryName, Directory.CreateDirectory(path), config, null);
         }
     }
 }
-

@@ -24,7 +24,7 @@ namespace Memo
         {
             var response = new List<MemoResponse>();
 
-            var category = _memoManager.GetCategories().Where(c => c.Name == categoryString).FirstOrDefault();
+            var category = _memoManager.GetCategory(categoryString);
             if (category == null) return response;
 
             foreach (var note in await _memoManager.GetNotesAsync(category, typeString))

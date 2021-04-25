@@ -15,8 +15,9 @@ namespace Memo
         private MarkdownPipeline DefaultFrontMatterPipeline { get; }
         private MarkdownPipeline YamlFrontMatterPipeline { get; }
         private IDeserializer YamlDeserializer { get; }
+        private CategoryCollector CategoryCollector { get; }
 
-        public NoteCollector()
+        public NoteCollector(CategoryCollector categoryCollector)
         {
             DefaultFrontMatterPipeline = new MarkdownPipelineBuilder()
                 .UseAdvancedExtensions()
@@ -28,64 +29,68 @@ namespace Memo
             YamlDeserializer = new DeserializerBuilder()
                 .IgnoreUnmatchedProperties()
                 .Build();
+            CategoryCollector = categoryCollector;
         }
 
-        public async Task<Note[]> Collect(Category category, string type = null)
+        public async Task<Note[]> Collect(Category filterCategory, string type = null)
         {
             var notes = new List<Note>();
-            foreach (var file in category.Path.GetFiles())
+            foreach (var category in CategoryCollector.Collect(filterCategory.Path))
             {
-                if (file.Name.StartsWith('.')) continue;
-
-                if (Path.GetExtension(file.FullName) is string extension)
+                foreach (var file in category.Path.GetFiles())
                 {
-                    extension = extension.ToLower();
-                    if (extension == ".md" || extension == ".markdown")
+                    if (file.Name.StartsWith('.')) continue;
+
+                    if (Path.GetExtension(file.FullName) is string extension)
                     {
-                        var noteText = await File.ReadAllTextAsync(file.FullName);
-                        var contentDocument = Markdown.Parse(noteText, DefaultFrontMatterPipeline);
-
-                        var document = Markdown.Parse(noteText, YamlFrontMatterPipeline);
-
-                        var yamlFrontMatterBlocks = document
-                            .Where(block => block is YamlFrontMatterBlock)
-                            .Select(block => block as YamlFrontMatterBlock)
-                            .ToArray();
-
-                        var note = new Note(file, contentDocument, category);
-                        if (yamlFrontMatterBlocks.Length > 0)
+                        extension = extension.ToLower();
+                        if (extension == ".md" || extension == ".markdown")
                         {
-                            var yamlText = yamlFrontMatterBlocks[0]
-                                .Lines
-                                .Lines
-                                .Where(x => x.Slice.Length > 0)
-                                .Select(x => $"{x}\n")
-                                .Aggregate((line, aggrigation) => aggrigation + line);
-                            try
+                            var noteText = await File.ReadAllTextAsync(file.FullName);
+                            var contentDocument = Markdown.Parse(noteText, DefaultFrontMatterPipeline);
+
+                            var document = Markdown.Parse(noteText, YamlFrontMatterPipeline);
+
+                            var yamlFrontMatterBlocks = document
+                                .Where(block => block is YamlFrontMatterBlock)
+                                .Select(block => block as YamlFrontMatterBlock)
+                                .ToArray();
+
+                            var note = new Note(file, contentDocument, Path.GetFileNameWithoutExtension(file.FullName) == "index" ? (category.ParentCategory == null ? category : category.ParentCategory) : category);
+                            if (yamlFrontMatterBlocks.Length > 0)
                             {
-                                note.Meta = YamlDeserializer.Deserialize<NoteMetaData>(yamlText);
+                                var yamlText = yamlFrontMatterBlocks[0]
+                                    .Lines
+                                    .Lines
+                                    .Where(x => x.Slice.Length > 0)
+                                    .Select(x => $"{x}\n")
+                                    .Aggregate((line, aggrigation) => aggrigation + line);
+                                try
+                                {
+                                    note.Meta = YamlDeserializer.Deserialize<NoteMetaData>(yamlText);
+                                }
+                                catch (Exception)
+                                {
+                                }
                             }
-                            catch (Exception)
+
+                            if (note.Meta == null)
                             {
+                                note.Meta = new NoteMetaData();
+                                note.Meta.Category = note.Category.Name;
+                                note.Meta.Title = note.ContentTitle;
+                                note.Meta.Created = DateTime.Now;
+                                note.Meta.Type = string.Empty;
                             }
-                        }
 
-                        if (note.Meta == null)
-                        {
-                            note.Meta = new NoteMetaData();
-                            note.Meta.Category = note.Category.Name;
-                            note.Meta.Title = note.ContentTitle;
-                            note.Meta.Created = DateTime.Now;
-                            note.Meta.Type = string.Empty;
-                        }
+                            if (!string.IsNullOrEmpty(type))
+                            {
+                                if (note.Meta == null || string.IsNullOrEmpty(note.Meta.Type)) continue;
+                                if (!Regex.IsMatch(note.Meta.Type, type)) continue;
+                            }
 
-                        if (!string.IsNullOrEmpty(type))
-                        {
-                            if (note.Meta == null || string.IsNullOrEmpty(note.Meta.Type)) continue;
-                            if (!Regex.IsMatch(note.Meta.Type, type)) continue;
+                            notes.Add(note);
                         }
-
-                        notes.Add(note);
                     }
                 }
             }

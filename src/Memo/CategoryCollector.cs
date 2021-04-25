@@ -18,10 +18,7 @@ namespace Memo
         public Category[] Collect(DirectoryInfo rootDirectory)
         {
             var categories = new List<Category>();
-            foreach (var directory in rootDirectory.GetDirectories())
-            {
-                CollectCategories(rootDirectory, directory, categories);
-            }
+            CollectCategories(Config.HomeDirectory, rootDirectory, categories, null);
 
             return categories.ToArray();
         }
@@ -33,21 +30,25 @@ namespace Memo
                 .FirstOrDefault();
         }
 
-        private void CollectCategories(DirectoryInfo rootDirectory, DirectoryInfo directory, List<Category> categories)
+        private void CollectCategories(DirectoryInfo rootDirectory, DirectoryInfo directory, List<Category> categories, Category parentCategory = null)
         {
-            if (directory.GetFiles("*.md").Length > 0 || directory.GetFiles("*.markdown") .Length > 0)
+            if (directory.GetFiles("*.md").Length > 0 ||
+                directory.GetFiles("*.markdown") .Length > 0 ||
+                directory.GetDirectories().Length > 0)
             {
-                var categoryName = Path.GetRelativePath(rootDirectory.FullName, directory.FullName);
-                categories.Add(new Category(
+                var categoryName = Path.GetRelativePath(Config.HomeDirectory.FullName, directory.FullName);
+                var category = new Category(
                     categoryName,
                     new DirectoryInfo(directory.FullName),
-                    ConfigFinder.FindOrDefault(categoryName)
-                ));
-            }
+                    ConfigFinder.FindOrDefault(categoryName),
+                    parentCategory
+                );
 
-            foreach (var subDirectory in directory.GetDirectories())
-            {
-                CollectCategories(rootDirectory, subDirectory, categories);
+                categories.Add(category);
+                foreach (var subDirectory in directory.GetDirectories())
+                {
+                    CollectCategories(rootDirectory, subDirectory, categories, category);
+                }
             }
         }
     }

@@ -7,12 +7,14 @@ namespace Memo
         public string Name { get; }
         public DirectoryInfo Path { get; }
         public MemoConfig.CategoryConfig CategoryConfig { get; }
+        public Category ParentCategory { get; }
 
-        public Category(string name, DirectoryInfo path, MemoConfig.CategoryConfig categoryConfig)
+        public Category(string name, DirectoryInfo path, MemoConfig.CategoryConfig categoryConfig, Category parentCategory)
         {
             Name = name;
             Path = path;
             CategoryConfig = categoryConfig;
+            ParentCategory = parentCategory;
         }
     }
 }

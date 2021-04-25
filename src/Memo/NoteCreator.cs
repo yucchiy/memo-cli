@@ -69,12 +69,12 @@ namespace Memo
 
         private async Task<Note> InternalCreateNoteAsync(Category category, NoteCreationParameter parameter, DateTime targetDate, CancellationToken token)
         {
-            var fileName = Utility.Format(
-                category.CategoryConfig.MemoFileNameFormat,
+            var directoryName = Utility.Format(
+                category.CategoryConfig.MemoDirectoryNameFormat,
                 new { InputTitle = parameter.Title, InputFilename = parameter.Filename, Category = category.Name, Created = DateTime.Now, TargetDate = targetDate }
             );
 
-            var file = new FileInfo(Path.Combine(Config.HomeDirectory.FullName, category.CategoryConfig.Name, $"{fileName}.markdown"));
+            var file = new FileInfo(Path.Combine(Config.HomeDirectory.FullName, category.CategoryConfig.Name, directoryName, $"index.markdown"));
             var note = await NoteCollector.Find(file.FullName, category, string.Empty);
             if (note != null)
             {
