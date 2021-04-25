@@ -20,9 +20,9 @@ namespace Memo
                 if (categoryConfig.Name == categoryName)
                 {
                     var category = MemoConfig.GetDefault(categoryName, categoryConfig.MemoCreationType);
-                    if (!string.IsNullOrEmpty(categoryConfig.MemoFileNameFormat))
+                    if (!string.IsNullOrEmpty(categoryConfig.MemoDirectoryNameFormat))
                     {
-                        category.MemoFileNameFormat = categoryConfig.MemoFileNameFormat;
+                        category.MemoDirectoryNameFormat = categoryConfig.MemoDirectoryNameFormat;
                     }
 
                     if (!string.IsNullOrEmpty(categoryConfig.MemoTitleFormat))

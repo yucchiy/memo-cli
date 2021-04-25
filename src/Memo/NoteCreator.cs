@@ -74,7 +74,13 @@ namespace Memo
                 new { InputTitle = parameter.Title, InputFilename = parameter.Filename, Category = category.Name, Created = DateTime.Now, TargetDate = targetDate }
             );
 
-            var file = new FileInfo(Path.Combine(Config.HomeDirectory.FullName, category.CategoryConfig.Name, directoryName, $"index.markdown"));
+            var directory = new DirectoryInfo(Path.Combine(Config.HomeDirectory.FullName, category.CategoryConfig.Name, directoryName));
+            if (!Directory.Exists(directory.FullName))
+            {
+                Directory.CreateDirectory(directory.FullName);
+            }
+
+            var file = new FileInfo(Path.Combine(directory.FullName, $"index.markdown"));
             var note = await NoteCollector.Find(file.FullName, category, string.Empty);
             if (note != null)
             {
