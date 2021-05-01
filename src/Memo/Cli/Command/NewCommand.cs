@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Memo
 {
@@ -8,32 +9,27 @@ namespace Memo
     {
         public class Input : CommandInput
         {
-            public string Title { get; set; }
             public string Category { get; set; }
-            public string Filename { get; set; }
-            public string Url { get; set; }
+            public string Id { get; set; }
+            public string[] Options { get; set; }
         }
 
         protected override Command CreateCommand()
         {
             var command = new Command("new")
             {
-                new Option<string>(
-                    new string[] {"--title", "-t"},
-                    "Title of note."
-                ),
-                new Option<string>(
-                    new string[] {"--category", "-c"},
+                new Argument<string>(
+                    "category",
                     "Category of note. Note must belong to one category"
                 ),
                 new Option<string>(
-                    new string[] {"--filename", "-f"},
-                    "File name of note. It automatically adds '.markdown' file extension if omitted"
+                    "--id",
+                    "A id of note."
                 ),
-                new Option<string>(
-                    new string[] {"--url"},
-                    "Collect title and filename from url. If this option specificated, title and filename will be override."
-                ),
+                new Option<string[]>(
+                    new string[] {"--options"},
+                    "A options of creating note."
+                )
             };
             command .AddAlias("n");
 
@@ -42,15 +38,8 @@ namespace Memo
 
         protected override async Task<int> ExecuteCommand(Input input, CancellationToken token)
         {
-            var note = await Context.MemoManager.CreateNoteAsync(new NoteCreationParameter()
-            {
-                Title = input.Title,
-                Category = input.Category,
-                Filename = input.Filename,
-                Url = input.Url,
-            },
-            token);
-
+            var parameter = await Context.MemoManager.CreateNoteCreationParameter(input.Category, input.Id, input.Options, token);
+            var note = await Context.MemoManager.CreateNoteAsync(parameter, token);
             if (input.NoColor)
             {
                 await Context.Output.WriteLineAsync($"{note.File.FullName}");

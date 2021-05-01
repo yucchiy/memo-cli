@@ -19,11 +19,6 @@ namespace Memo
             public string Name;
             [DataMember(Name = "memo_creation_type")]
             public CreationType MemoCreationType = CreationType.Default;
-            [DataMember(Name = "memo_dirname_format")]
-            public string MemoDirectoryNameFormat = string.Empty;
-            [DataMember(Name = "memo_title_format")]
-            public string MemoTitleFormat = string.Empty;
-
             [DataMember(Name = "memo_template_path")]
             public string MemoTemplateFilePath = string.Empty;
         }
@@ -36,25 +31,16 @@ namespace Memo
                     return new CategoryConfig()
                     {
                         Name = categoryName,
-                        MemoCreationType = CreationType.Default,
-                        MemoDirectoryNameFormat = "{{ target_date | date.to_string '%Y%m%d' }}_{{ input_filename }}",
-                        MemoTitleFormat = "{{ input_title }} - {{ category }}",
                     };
                 case CreationType.Daily:
                     return new CategoryConfig()
                     {
                         Name = categoryName,
-                        MemoCreationType = CreationType.Daily,
-                        MemoDirectoryNameFormat = "{{ target_date | date.to_string '%Y%m%d' }}_{{ category }}",
-                        MemoTitleFormat = "{{ category }} - {{ target_date | date.to_string '%Y/%m/%d' }}",
                     };
                 case CreationType.Weekly:
                     return new CategoryConfig()
                     {
                         Name = categoryName,
-                        MemoCreationType = CreationType.Weekly,
-                        MemoDirectoryNameFormat = "{{ target_date | date.to_string '%Y%m%d' }}_{{ category }}",
-                        MemoTitleFormat = "{{ category }} - {{ target_date | date.to_string '%Y/%m/%d' }}",
                     };
                 default:
                     throw new MemoCliException($"CreationType {creationType} is not support.");

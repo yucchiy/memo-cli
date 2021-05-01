@@ -19,43 +19,40 @@ namespace Memo
 
         [HttpGet]
         public async Task<IEnumerable<MemoResponse>> GetAsync(
-            [FromQuery(Name = "category")] string categoryString,
-            [FromQuery(Name = "type")] string typeString)
+            [FromQuery(Name = "category")] string inputCategory,
+            [FromQuery(Name = "queries")] string[] queries)
         {
-            var response = new List<MemoResponse>();
+            var category = _memoManager.GetCategory(inputCategory);
+            if (category == null) return new List<MemoResponse>();
 
-            var category = _memoManager.GetCategory(categoryString);
-            if (category == null) return response;
-
-            foreach (var note in await _memoManager.GetNotesAsync(category, typeString))
-            {
-                response.Add(new MemoResponse()
+            return (await _memoManager.GetNotesAsync(category, queries))
+                .Select(note => new MemoResponse()
                 {
                     Category = note.Category.Name,
+                    Id = note.Id,
                     FilePath = note.File.FullName,
                     Title = note.Meta.Title,
                     Type = note.Meta.Type ?? string.Empty,
-                });
-            }
-
-            return response;
+                })
+                .ToArray();
         }
 
         [HttpPost]
         public async Task<MemoResponse> CreateAsync(
             [FromBody] MemoCreationRequest request)
         {
-            var note = await _memoManager.CreateNoteAsync(new NoteCreationParameter()
-            {
-                Category = request.Category,
-                Title = request.Title,
-                Filename = request.FileName,
-                Url = request.Url,
-            }, CancellationToken.None);
+            var parameter = await _memoManager.CreateNoteCreationParameter(
+                request.Category,
+                request.Id,
+                request.Options,
+                CancellationToken.None
+            );
+            var note = await _memoManager.CreateNoteAsync(parameter, CancellationToken.None);
 
             return new MemoResponse()
             {
                 Category = note.Category.Name,
+                Id = note.Id,
                 FilePath = note.File.FullName,
                 Title = note.Meta.Title,
                 Type = note.Meta.Type ?? string.Empty,
@@ -66,14 +63,14 @@ namespace Memo
         {
             [Required]
             public string Category { get; set; }
-            public string Title { get ; set; }
-            public string FileName { get ; set; }
-            public string Url { get ; set; }
+            public string Id { get ; set; }
+            public IEnumerable<string> Options { get ; set; }
         }
 
         public class MemoResponse
         {
             public string Category { get; set; }
+            public string Id { get; set; }
             public string FilePath { get; set; }
             public string Title { get; set; }
             public string Type { get; set; }

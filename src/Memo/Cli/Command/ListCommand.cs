@@ -1,7 +1,6 @@
 using System.IO;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +11,7 @@ namespace Memo
         public class Input : CommandInput
         {
             public string Category { get; set; }
-            public string Type { get; set; }
+            public IEnumerable<string> Queries { get; set; }
             public bool Relative { get; set; }
             public string Format { get; set; }
         }
@@ -26,9 +25,9 @@ namespace Memo
                     () => string.Empty,
                     "Filter list by category name with regular expression"
                 ),
-                new Option<string>(
-                    new string[] {"--type", "-t"},
-                    () => string.Empty,
+                new Option<IEnumerable<string>>(
+                    new string[] {"--queries", "-q"},
+                    () => new string[]{},
                     "Filter list by type with regular expression"
                 ),
                 new Option<bool>(
@@ -49,33 +48,12 @@ namespace Memo
 
         protected override async Task<int> ExecuteCommand(Input input, CancellationToken token)
         {
-            var notes = await CollectNotes(input, token);
-
+            var notes = new List<Note>();
+            notes.AddRange(await Context.MemoManager.GetNotesAsync(Context.MemoManager.GetCategory(input.Category), input.Queries));
             notes.Sort(NoteCollector.CompareByModified);
             notes.Reverse();
             
             return await Show(notes, string.IsNullOrEmpty(input.Format) ? "{{ path }}" : input.Format, input.Relative);
-        }
-
-        private async Task<List<Note>> CollectNotes(Input input, CancellationToken token)
-        {
-            var notes = new List<Note>();
-            foreach (var category in Context.MemoManager.GetCategories())
-            {
-                if (!string.IsNullOrEmpty(input.Category))
-                {
-                    if (Regex.IsMatch(category.Name, input.Category))
-                    {
-                        notes.AddRange(await Context.MemoManager.GetNotesAsync(category, input.Type));
-                    }
-                }
-                else
-                {
-                    notes.AddRange(await Context.MemoManager.GetNotesAsync(category, input.Type));
-                }
-            }
-
-            return notes;
         }
 
         private async Task<int> Show(List<Note> notes, string format, bool withRelativePath)

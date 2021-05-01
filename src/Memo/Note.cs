@@ -9,6 +9,14 @@ namespace Memo
 {
     public class Note
     {
+        public string Id
+        {
+            get
+            {
+                var fileName = Path.GetFileNameWithoutExtension(File.FullName);
+                return fileName == "index" ? File.FullName.Split(Path.DirectorySeparatorChar).TakeLast(2).FirstOrDefault() : fileName;
+            }
+        }
         public Category Category { get; }
         public FileInfo File { get; }
         public MarkdownDocument Content { get; }

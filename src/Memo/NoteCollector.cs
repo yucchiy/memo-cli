@@ -32,9 +32,10 @@ namespace Memo
             CategoryCollector = categoryCollector;
         }
 
-        public async Task<Note[]> Collect(Category filterCategory, string type = null)
+        public async Task<Note[]> Collect(Category filterCategory, IEnumerable<string> queries)
         {
             var notes = new List<Note>();
+            var queryMap = TryParseQueries(queries);
             foreach (var category in CategoryCollector.Collect(filterCategory.Path))
             {
                 foreach (var file in category.Path.GetFiles())
@@ -83,7 +84,12 @@ namespace Memo
                                 note.Meta.Type = string.Empty;
                             }
 
-                            if (!string.IsNullOrEmpty(type))
+                            if (queryMap.TryGetValue("id", out var id))
+                            {
+                                if (note.Category.Name != filterCategory.Name || note.Id != id) continue;
+                            }
+
+                            if (queryMap.TryGetValue("type", out var type))
                             {
                                 if (note.Meta == null || string.IsNullOrEmpty(note.Meta.Type)) continue;
                                 if (!Regex.IsMatch(note.Meta.Type, type)) continue;
@@ -98,12 +104,37 @@ namespace Memo
             return notes.ToArray();
         }
 
-        public async Task<Note> Find(string filePath, Category category, string type)
+        private Dictionary<string, string> TryParseQueries(IEnumerable<string> queries)
         {
-            var notes = await Collect(category, type);
-            return notes
-                .Where(note => note.File.FullName == filePath)
-                .FirstOrDefault();
+            var result = new Dictionary<string, string>();
+            foreach (var query in queries)
+            {
+                if (TryParseQuery(query, out var kv))
+                {
+                    result.Add(kv.Key, kv.Value);
+                }
+            }
+
+            return result;
+        }
+
+        private bool TryParseQuery(string query, out KeyValuePair<string, string> result)
+        {
+            var indexOf = query.IndexOf(":");
+            if (indexOf > 0)
+            {
+                result = new KeyValuePair<string, string>(query.Substring(0, indexOf), query.Substring(indexOf + 1));
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
+        public async Task<Note> Find(Category category, string id)
+        {
+            var notes = await Collect(category, new string[] {$"id:{id}"});
+            return notes.FirstOrDefault();
         }
 
         public static int CompareByModified(Note a, Note b) => DateTime.Compare(a.Modified, b.Modified);
