@@ -167,7 +167,7 @@ namespace Memo.Core.Notes
         {
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();
             var stream = string.IsNullOrEmpty(categoryConfig.MemoTemplateFilePath) ?
-                new StreamReader(assembly.GetManifestResourceStream($"Memo.res.{categoryConfig.MemoCreationType.ToString()}.md")) :
+                new StreamReader(assembly.GetManifestResourceStream($"Memo.res.Default.md")) :
                 new StreamReader(System.IO.File.OpenRead(Path.Combine(rootDirectory, categoryConfig.MemoTemplateFilePath)));
 
             return await stream.ReadToEndAsync();
