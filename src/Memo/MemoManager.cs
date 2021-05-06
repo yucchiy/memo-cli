@@ -45,6 +45,8 @@ namespace Memo
             return await NoteCreationParameterBuilder.Build(category, id, options, token);
         }
 
+        public DirectoryInfo GetRoot() => Config.HomeDirectory;
+
         public class Configuration
         {
             public DirectoryInfo HomeDirectory;

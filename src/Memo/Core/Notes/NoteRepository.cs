@@ -16,9 +16,14 @@ namespace Memo.Core.Notes
             QueryFilter = queryFilter;
         }
 
-        public async Task<Note?> SaveAsync(Note note, CancellationToken token)
+        public async Task<Note> SaveAsync(Note note, CancellationToken token)
         {
-            return (await Storage.WriteAsync(note, token)) ? note : null;
+            if (await Storage.WriteAsync(note, token))
+            {
+                return note;
+            }
+
+            throw new MemoCliException("Failed to save note");
         }
 
         public async Task<Note?> FindAsync(Categories.CategoryId categoryId, Note.NoteId id, CancellationToken token)

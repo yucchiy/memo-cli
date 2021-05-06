@@ -14,7 +14,7 @@ namespace Memo.Core.Notes
 
     public interface INoteRepositorySave
     {
-        Task<Note?> SaveAsync(Note note, CancellationToken token);
+        Task<Note> SaveAsync(Note note, CancellationToken token);
     }
 
     public interface INoteRepositoryFind

@@ -11,10 +11,12 @@ namespace Memo
     [Route("[Controller]")]
     public class NoteController : ControllerBase
     {
-        private IMemoManager _memoManager;
-        public NoteController(IMemoManager memoManager)
+        private Core.Notes.INoteService NoteService { get; }
+        private IMemoManager Manager { get; }
+        public NoteController(Core.Notes.INoteService noteService, IMemoManager manager)
         {
-            _memoManager = memoManager;
+            NoteService = noteService;
+            Manager = manager;
         }
 
         [HttpGet]
@@ -22,40 +24,36 @@ namespace Memo
             [FromQuery(Name = "category")] string inputCategory,
             [FromQuery(Name = "queries")] string[] queries)
         {
-            var category = _memoManager.GetCategory(inputCategory);
-            if (category == null) return new List<MemoResponse>();
 
-            return (await _memoManager.GetNotesAsync(category, queries))
-                .Select(note => new MemoResponse()
-                {
-                    Category = note.Category.Name,
-                    Id = note.Id,
-                    FilePath = note.File.FullName,
-                    Title = note.Meta.Title,
-                    Type = note.Meta.Type ?? string.Empty,
-                })
-                .ToArray();
+            var builder = new Core.Notes.NoteSearchQueryBuilder();
+            builder.WithCategoryId(inputCategory);
+            builder.WithQueryStrings(queries);
+
+            return (await NoteService.GetNotesAsync(builder.Build(), CancellationToken.None))
+                .Select(ToResponse);
         }
 
         [HttpPost]
         public async Task<MemoResponse> CreateAsync(
             [FromBody] MemoCreationRequest request)
         {
-            var parameter = await _memoManager.CreateNoteCreationParameter(
-                request.Category,
-                request.Id,
-                request.Options,
-                CancellationToken.None
-            );
-            var note = await _memoManager.CreateNoteAsync(parameter, CancellationToken.None);
+            var builder = new Core.Notes.NoteCreationParameterBuilder();
+            builder.WithCategoryId(request.Id);
+            builder.WithQueryStrings(request.Options);
 
+            var note = await NoteService.CreateNoteAsync(builder.Build(), CancellationToken.None);
+            return ToResponse(note);
+        }
+
+        private MemoResponse ToResponse(Core.Notes.Note note)
+        {
             return new MemoResponse()
             {
-                Category = note.Category.Name,
-                Id = note.Id,
-                FilePath = note.File.FullName,
-                Title = note.Meta.Title,
-                Type = note.Meta.Type ?? string.Empty,
+                Category = note.Category.Id.Value,
+                Id = note.Id.Value,
+                FilePath = $"{Manager.GetRoot().FullName}/{note.RelativePath}",
+                Title = note.Title.Value,
+                Type = (note.Type is Core.Notes.Note.NoteType noteType) ? noteType.Value : string.Empty,
             };
         }
 

@@ -15,7 +15,7 @@ namespace Memo.Core.Notes
             NoteBuilder = noteBuilder;
         }
 
-        public async Task<Note?> CreateNoteAsync(NoteCreationParameter parameter, CancellationToken token)
+        public async Task<Note> CreateNoteAsync(NoteCreationParameter parameter, CancellationToken token)
         {
             var note = await NoteBuilder.BuildAsync(parameter, token);
             return await Repository.SaveAsync(note, token);
