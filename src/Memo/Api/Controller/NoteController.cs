@@ -38,7 +38,7 @@ namespace Memo
             [FromBody] MemoCreationRequest request)
         {
             var builder = new Core.Notes.NoteCreationParameterBuilder();
-            builder.WithCategoryId(request.Id);
+            builder.WithCategoryId(request.Category);
             builder.WithQueryStrings(request.Options);
 
             var note = await NoteService.CreateNoteAsync(builder.Build(), CancellationToken.None);
