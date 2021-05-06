@@ -7,6 +7,7 @@ namespace Memo.Core.Notes
     {
         private static readonly char IdSeparator = '_';
         private static readonly string IdTimestampFormat = "yyyyMMddHHmmss";
+        private static readonly string HumanReadableTimestampFormat = "yyyy/MM/dd";
 
         public NoteBuilder()
         {
@@ -69,18 +70,38 @@ namespace Memo.Core.Notes
             var timestamp = parameter.Options.Timestamp is System.DateTime dt ? dt : System.DateTime.Now;
             var dailyTimestamp = new System.DateTime(timestamp.Year, timestamp.Month, timestamp.Day, System.Globalization.CultureInfo.CurrentCulture.Calendar);
 
-            var builder = new NoteCreationParameterBuilder(in parameter)
+           var builder = new NoteCreationParameterBuilder(in parameter)
                 .WithCreationType(NoteCreationOptionParameter.NoteCreationType.Default)
                 .WithTimestamp(dailyTimestamp);
+
+            if (parameter.Options.Title is Note.NoteTitle title)
+            {
+                builder.WithTitle($"{title.Value} - {dailyTimestamp.ToString(HumanReadableTimestampFormat)}");
+            }
+            else
+            {
+                builder.WithTitle($"{dailyTimestamp.ToString(HumanReadableTimestampFormat)} - {parameter.CategoryId.Value}");
+            }
 
             return BuildDefault(builder.Build());
         }
 
         private Note BuildWeekly(in NoteCreationParameter parameter)
         {
+            var timestamp = Utility.FirstDayOfWeek();
             var builder = new NoteCreationParameterBuilder(in parameter)
                 .WithCreationType(NoteCreationOptionParameter.NoteCreationType.Default)
-                .WithTimestamp(Utility.FirstDayOfWeek());
+                .WithTimestamp(timestamp);
+
+            if (parameter.Options.Title is Note.NoteTitle title)
+            {
+                builder.WithTitle($"{title.Value} - {timestamp.ToString(HumanReadableTimestampFormat)}");
+            }
+            else
+            {
+                builder.WithTitle($"{timestamp.ToString(HumanReadableTimestampFormat)} - {parameter.CategoryId.Value}");
+            }
+
 
             return BuildDefault(builder.Build());
         }
