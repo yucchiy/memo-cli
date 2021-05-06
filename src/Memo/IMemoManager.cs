@@ -10,7 +10,7 @@ namespace Memo
         Category GetCategory(string categoryName);
         Category[] GetCategories();
         Task<Note[]> GetNotesAsync(Category category, IEnumerable<string> queries);
-        Task<Note> CreateNoteAsync(NoteCreationParameter input, CancellationToken token);
-        Task<NoteCreationParameter> CreateNoteCreationParameter(string category, string id, IEnumerable<string> options, CancellationToken token);
+        Task<Note> CreateNoteAsync(NoteCreateParameter input, CancellationToken token);
+        Task<NoteCreateParameter> CreateNoteCreationParameter(string category, string id, IEnumerable<string> options, CancellationToken token);
     }
 }

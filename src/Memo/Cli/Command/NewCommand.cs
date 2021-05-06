@@ -10,7 +10,6 @@ namespace Memo
         public class Input : CommandInput
         {
             public string Category { get; set; }
-            public string Id { get; set; }
             public string[] Options { get; set; }
         }
 
@@ -22,12 +21,9 @@ namespace Memo
                     "category",
                     "Category of note. Note must belong to one category"
                 ),
-                new Option<string>(
-                    "--id",
-                    "A id of note."
-                ),
-                new Option<string[]>(
+               new Option<string[]>(
                     new string[] {"--options"},
+                    () => new string[0],
                     "A options of creating note."
                 )
             };
@@ -38,21 +34,28 @@ namespace Memo
 
         protected override async Task<int> ExecuteCommand(Input input, CancellationToken token)
         {
-            var parameter = await Context.MemoManager.CreateNoteCreationParameter(input.Category, input.Id, input.Options, token);
-            var note = await Context.MemoManager.CreateNoteAsync(parameter, token);
-            if (input.NoColor)
+            var builder = new Core.Notes.NoteCreationParameterBuilder();
+            builder.WithCategoryId(input.Category);
+            builder.WithQueryStrings(input.Options);
+
+            if (await Context.NoteService.CreateNoteAsync(builder.Build(), token) is Core.Notes.Note note)
             {
-                await Context.Output.WriteLineAsync($"{note.File.FullName}");
-            }
-            else
-            {
-                using (new UseColor(System.ConsoleColor.Green))
+                if (input.NoColor)
                 {
-                    await Context.Output.WriteLineAsync($"Created {note.File.FullName}");
+                    await Context.Output.WriteLineAsync($"{Context.CommandConfig.HomeDirectory.FullName}/{note.RelativePath}");
                 }
+                else
+                {
+                    using (new UseColor(System.ConsoleColor.Green))
+                    {
+                        await Context.Output.WriteLineAsync($"{Context.CommandConfig.HomeDirectory.FullName}/{note.RelativePath}");
+                    }
+                }
+
+                return Cli.SuccessExitCode;
             }
 
-            return Cli.SuccessExitCode;
+            throw new MemoCliException("Failed to create note");
         }
     }
 }

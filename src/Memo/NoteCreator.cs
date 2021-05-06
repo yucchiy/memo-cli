@@ -21,13 +21,13 @@ namespace Memo
             Config = config;
         }
 
-        public async Task<Note> CreateNoteAsync(NoteCreationParameter parameter, CancellationToken token)
+        public async Task<Note> CreateNoteAsync(NoteCreateParameter parameter, CancellationToken token)
         {
             var category = CategoryCreator.Create(parameter.Category);
             return await InternalCreateNoteAsync(category, parameter, DateTime.Now, token);
         }
 
-        private async Task<Note> InternalCreateNoteAsync(Category category, NoteCreationParameter parameter, DateTime targetDate, CancellationToken token)
+        private async Task<Note> InternalCreateNoteAsync(Category category, NoteCreateParameter parameter, DateTime targetDate, CancellationToken token)
         {
             var directory = new DirectoryInfo(Path.Combine(Config.HomeDirectory.FullName, category.CategoryConfig.Name, parameter.Id));
             if (!Directory.Exists(directory.FullName))

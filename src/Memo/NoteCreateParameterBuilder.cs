@@ -5,19 +5,18 @@ using System.Collections.Generic;
 
 namespace Memo
 {
-    public class NoteCreationParameterBuilder : IDisposable
+    public class NoteCreateParameterBuilder : IDisposable
     {
-        public NoteCreationParameterBuilder()
+        public NoteCreateParameterBuilder()
         {
 
         }
 
         public void Dispose()
         {
-
         }
 
-        public async Task<NoteCreationParameter> Build(string category, string id, IEnumerable<string> options, CancellationToken token)
+        public async Task<NoteCreateParameter> Build(string category, string id, IEnumerable<string> options, CancellationToken token)
         {
             var parsedOptions = TryParseOptions(options, out var pso) ? pso : new Dictionary<string, string>();
             if (parsedOptions.TryGetValue("type", out var type))
@@ -40,14 +39,14 @@ namespace Memo
             return CreateDefaultParameter(category, id, parsedOptions);
         }
 
-        private NoteCreationParameter CreateDefaultParameter(string category, string id, Dictionary<string, string> options) => new NoteCreationParameter()
+        private NoteCreateParameter CreateDefaultParameter(string category, string id, Dictionary<string, string> options) => new NoteCreateParameter()
         {
             Category = category,
             Id = id,
             Options = options,
         };
 
-        private NoteCreationParameter CreateDailyParameter(string category, string id, Dictionary<string, string> options)
+        private NoteCreateParameter CreateDailyParameter(string category, string id, Dictionary<string, string> options)
         {
             var date = System.DateTime.Now;
             if (options.TryGetValue("title", out var title))
@@ -59,15 +58,15 @@ namespace Memo
                 options["title"] = string.Format("{0} - {1}", date.ToString("yyyy/MM/dd"), category);
             }
 
-            return new NoteCreationParameter()
+            return new NoteCreateParameter()
             {
                 Category = category,
-                Id = string.IsNullOrEmpty(id) ? date.ToString("yyyyMMdd") : string.Format("{0}_{1}", date.ToString("yyyyMMdd"), id),
+                Id = string.IsNullOrEmpty(id) ? date.ToString("yyyyMMdd") + "000000" : string.Format("{0}_{1}", date.ToString("yyyyMMdd") + "000000", id),
                 Options = options,
             };
         }
 
-        private NoteCreationParameter CreateWeeklyParameter(string category, string id, Dictionary<string, string> options)
+        private NoteCreateParameter CreateWeeklyParameter(string category, string id, Dictionary<string, string> options)
         {
             var date = Utility.FirstDayOfWeek();
             if (options.TryGetValue("title", out var title))
@@ -79,15 +78,15 @@ namespace Memo
                 options["title"] = string.Format("{0} - {1}", date.ToString("yyyy/MM/dd"), category);
             }
 
-            return new NoteCreationParameter()
+            return new NoteCreateParameter()
             {
                 Category = category,
-                Id = string.IsNullOrEmpty(id) ? date.ToString("yyyyMMdd") : string.Format("{0}_{1}", date.ToString("yyyyMMdd"), id),
+                Id = string.IsNullOrEmpty(id) ? date.ToString("yyyyMMdd") + "000000" : string.Format("{0}_{1}", date.ToString("yyyyMMdd") + "000000", id),
                 Options = options,
             };
         }
 
-        private NoteCreationParameter CreateTimestampParameter(string category, string id, Dictionary<string, string> options)
+        private NoteCreateParameter CreateTimestampParameter(string category, string id, Dictionary<string, string> options)
         {
             var timestamp = System.DateTime.Now.ToString("yyyyMMddHHmmss");
             if (options.TryGetValue("title", out var title))
@@ -99,7 +98,7 @@ namespace Memo
                 options["title"] = string.Format("{0} - {1}", timestamp, category);
             }
 
-            return new NoteCreationParameter()
+            return new NoteCreateParameter()
             {
                 Category = category,
                 Id = string.IsNullOrEmpty(id) ? timestamp : string.Format("{0}_{1}", timestamp, id),
@@ -107,7 +106,7 @@ namespace Memo
             };
         }
 
-        private async Task<NoteCreationParameter> CreateUrlParameter(string category, string id, Dictionary<string, string> options, CancellationToken token)
+        private async Task<NoteCreateParameter> CreateUrlParameter(string category, string id, Dictionary<string, string> options, CancellationToken token)
         {
             if (!options.TryGetValue("url", out var url))
             {
@@ -127,7 +126,7 @@ namespace Memo
                             options["title"] = title;
                         }
 
-                        return new NoteCreationParameter()
+                        return new NoteCreateParameter()
                         {
                             Category = category,
                             Id = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{uri.Scheme}://{uri.Host}/{uri.PathAndQuery}")),

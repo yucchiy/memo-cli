@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
+using Markdig;
 
 namespace Memo
 {
@@ -16,11 +17,16 @@ namespace Memo
             public TextWriter Output { get; }
             public IConsole Console { get; }
 
-            public MemoContext(MemoManager memoManager, CommandConfig commandConfig, TextWriter output)
+            public Core.Notes.INoteService NoteService { get; }
+            public Core.Categories.ICategoryService CategoryService { get; }
+
+            public MemoContext(MemoManager memoManager, CommandConfig commandConfig, TextWriter output, Core.Notes.INoteService noteService, Core.Categories.ICategoryService categoryService)
             {
                 MemoManager = memoManager;
                 CommandConfig = commandConfig;
                 Output = output;
+                NoteService = noteService;
+                CategoryService = categoryService;
             }
         }
 
@@ -32,10 +38,33 @@ namespace Memo
             command.Handler = CommandHandler.Create(async (TInputType input, CancellationToken token) => await Execute(input, token));
             cli.RootCommand.AddCommand(command);
 
+            var noteRepository = new Core.Notes.NoteRepository(
+                new Core.Notes.NoteStorageFileSystemImpl(
+                    new Core.Notes.NoteParser(
+                        new Core.Categories.CategoryConfigStore(cli.CommandConfig.MemoConfig.Categories),
+                        (new Markdig.MarkdownPipelineBuilder())
+                            .UseYamlFrontMatter().Build(),
+                        new Core.Notes.NoteParser.Options(cli.CommandConfig.HomeDirectory, '/')
+                    ),
+                    new Core.Notes.NoteStorageFileSystemImpl.Options(cli.CommandConfig.HomeDirectory)
+                ),
+                new Core.Notes.NoteQueryFilter()
+            );
+            var noteService = new Core.Notes.NoteService(
+                noteRepository,
+                new Core.Notes.NoteBuilder()
+            );
+
+            var categoryService = new Core.Categories.CategoryService(
+                new Core.Categories.CategoryRepository(noteRepository)
+            );
+
             Context = new MemoContext(
                 new MemoManager(),
                 cli.CommandConfig,
-                cli.Output
+                cli.Output,
+                noteService,
+                categoryService
             );
         }
 

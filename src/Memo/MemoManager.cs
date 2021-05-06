@@ -9,7 +9,7 @@ namespace Memo
     {
         private NoteCollector NoteCollector { get; }
         private NoteCreator NoteCreator { get; }
-        private NoteCreationParameterBuilder NoteCreationParameterBuilder { get; }
+        private NoteCreateParameterBuilder NoteCreationParameterBuilder { get; }
         private CategoryConfigFinder CategoryConfigFinder { get; }
         private CategoryCreator CategoryCreator { get; }
         private CategoryCollector CategoryCollector { get; }
@@ -24,7 +24,7 @@ namespace Memo
             CategoryCreator = new CategoryCreator(CategoryCollector, CategoryConfigFinder, commandConfig);
             NoteCollector = new NoteCollector(CategoryCollector);
             NoteCreator = new NoteCreator(NoteCollector, CategoryCreator, CategoryCollector, commandConfig);
-            NoteCreationParameterBuilder = new NoteCreationParameterBuilder();
+            NoteCreationParameterBuilder = new NoteCreateParameterBuilder();
             Config = new Configuration()
             {
                 HomeDirectory = commandConfig.HomeDirectory
@@ -39,8 +39,8 @@ namespace Memo
 
         public async Task<Note[]> GetNotesAsync(Category category, IEnumerable<string> queries) => await NoteCollector.Collect(category, queries);
 
-        public async Task<Note> CreateNoteAsync(NoteCreationParameter parameter, CancellationToken token) => await NoteCreator.CreateNoteAsync(parameter, token);
-        public async Task<NoteCreationParameter> CreateNoteCreationParameter(string category, string id, IEnumerable<string> options, CancellationToken token)
+        public async Task<Note> CreateNoteAsync(NoteCreateParameter parameter, CancellationToken token) => await NoteCreator.CreateNoteAsync(parameter, token);
+        public async Task<NoteCreateParameter> CreateNoteCreationParameter(string category, string id, IEnumerable<string> options, CancellationToken token)
         {
             return await NoteCreationParameterBuilder.Build(category, id, options, token);
         }
