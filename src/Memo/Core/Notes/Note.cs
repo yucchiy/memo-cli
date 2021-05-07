@@ -1,6 +1,4 @@
-
 using System;
-using System.IO;
 using System.Collections.Generic;
 
 namespace Memo.Core.Notes
@@ -72,25 +70,27 @@ namespace Memo.Core.Notes
         public NoteTitle Title { get; }
         public NoteType? Type { get; }
         public DateTime? Created { get; }
+        public IEnumerable<string> Links { get; }
+        public IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> InternalLinks { get; }
 
         public string RelativePath { get => $"{Category.Id.Value}/{Id.Value}/index.markdown"; }
 
-        public Note(Categories.Category category, NoteId id, NoteTitle title, NoteType? type, DateTime? created)
+        public Note(Categories.Category category, NoteId id, NoteTitle title, NoteType? type, DateTime? created, IEnumerable<string> links, IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> internalLinks)
         {
             Category = category;
             Id = id;
             Title = title;
             Type = type;
             Created = created;
+            Links = links;
+            InternalLinks = internalLinks;
         }
 
         public override bool Equals(object obj)
         {
             return obj is Note note &&
                    EqualityComparer<Categories.Category>.Default.Equals(Category, note.Category) &&
-                   Id.Equals(note.Id) &&
-                   Title.Equals(note.Title) &&
-                   EqualityComparer<NoteType?>.Default.Equals(Type, note.Type);
+                   Id.Equals(note.Id);
         }
 
         public override int GetHashCode()

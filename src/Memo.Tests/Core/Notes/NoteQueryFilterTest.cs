@@ -21,8 +21,8 @@ namespace Memo.Core.Notes.Tests
                 .WithCategoryId("test_category_2")
                 .Build();
 
-            var note1 = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id"), new Note.NoteTitle(""), null, null);
-            var note2 = new Note(new Categories.Category(new Categories.CategoryId("test_category_2")), new Note.NoteId("id"), new Note.NoteTitle(""), null, null);
+            var note1 = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id"), new Note.NoteTitle(""), null, null, null, null);
+            var note2 = new Note(new Categories.Category(new Categories.CategoryId("test_category_2")), new Note.NoteId("id"), new Note.NoteTitle(""), null, null, null, null);
 
             Assert.True(queryFilter.FilterNote(note1, query1));
             Assert.False(queryFilter.FilterNote(note1, query2));
@@ -45,8 +45,8 @@ namespace Memo.Core.Notes.Tests
                 .WithType(type2)
                 .Build();
 
-            var note1 = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id"), new Note.NoteTitle(""), type1, null);
-            var note2 = new Note(new Categories.Category(new Categories.CategoryId("test_category_2")), new Note.NoteId("id"), new Note.NoteTitle(""), type2, null);
+            var note1 = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id"), new Note.NoteTitle(""), type1, null, null, null);
+            var note2 = new Note(new Categories.Category(new Categories.CategoryId("test_category_2")), new Note.NoteId("id"), new Note.NoteTitle(""), type2, null, null, null);
 
             Assert.True(queryFilter.FilterNote(note1, query1));
             Assert.False(queryFilter.FilterNote(note1, query2));

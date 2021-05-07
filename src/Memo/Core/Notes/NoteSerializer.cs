@@ -1,11 +1,12 @@
 using Markdig;
+using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 using Markdig.Extensions.Yaml;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text;
 using System;
 
 namespace Memo.Core.Notes
@@ -19,8 +20,9 @@ namespace Memo.Core.Notes
         private const string kFrontMatterKeyType = "type";
         private const string kFrontMatterKeyCreated = "created";
 
+        private INoteBuilder NoteBuilder { get; }
         private Categories.ICategoryConfigStore CategoryConfigStore { get; }
-        private MarkdownPipeline FrontMatterPipeline { get; }
+        private MarkdownPipeline MarkdownPipeline { get; }
         private Options Option { get; }
 
         public class Options
@@ -35,19 +37,22 @@ namespace Memo.Core.Notes
             }
         }
 
-        public NoteParser(Categories.ICategoryConfigStore categoryConfigStore, Options option)
+        public NoteParser(INoteBuilder noteBuilder, Categories.ICategoryConfigStore categoryConfigStore, Options option)
         {
+            NoteBuilder = noteBuilder;
             CategoryConfigStore = categoryConfigStore;
-            FrontMatterPipeline = new MarkdownPipelineBuilder()
+            MarkdownPipeline = new MarkdownPipelineBuilder()
                 .UseYamlFrontMatter()
+                .UseAdvancedExtensions()
                 .Build();
             Option = option;
         }
 
-        public NoteParser(Categories.ICategoryConfigStore categoryConfigStore, MarkdownPipeline frontMatterPipeline, Options option)
+        public NoteParser(INoteBuilder noteBuilder, Categories.ICategoryConfigStore categoryConfigStore, MarkdownPipeline markdownPipeline, Options option)
         {
+            NoteBuilder = noteBuilder;
             CategoryConfigStore = categoryConfigStore;
-            FrontMatterPipeline = frontMatterPipeline;
+            MarkdownPipeline = markdownPipeline;
             Option = option;
         }
 
@@ -62,22 +67,43 @@ namespace Memo.Core.Notes
 
             var rawContent = await File.ReadAllTextAsync(fileInfo.FullName);
 
-            var frontMatters = ParseFrontMatter(rawContent);
-
-            var noteTitle = new Note.NoteTitle(frontMatters.TryGetValue(kFrontMatterKeyTitle, out var title) ? title : string.Empty);
-            System.Nullable<Note.NoteType> noteType = frontMatters.TryGetValue(kFrontMatterKeyType, out var type) ? new Note.NoteType(type) : null;
-            System.Nullable<System.DateTime> noteCreated = (frontMatters.TryGetValue(kFrontMatterKeyCreated, out var createdContent) && System.DateTime.TryParse(createdContent, out var created)) ? created : null;
-
             var (categoryId, noteId) = ParseId(fileInfo);
+            var (frontMatters, links) = ParseContent(rawContent);
 
-            return (true, new Note(new Categories.Category(categoryId), noteId, noteTitle, noteType, noteCreated));
+            var builder = (new NoteCreationParameterBuilder())
+                .WithCategoryId(categoryId)
+                .WithId(noteId)
+                .WithLinks(links.Where(link => link.Length > 4 && link.IndexOf("http") == 0))
+                .WithInternalLinks(
+                    links
+                        .Select(link => TryParseLink(link, out var cid, out var nid) ? (cid, nid) : default)
+                        .Where(link => !string.IsNullOrEmpty(link.cid.Value) && !string.IsNullOrEmpty(link.nid.Value))
+                );
+
+            if (frontMatters.TryGetValue(kFrontMatterKeyTitle, out var noteTitle))
+            {
+                builder.WithTitle(noteTitle);
+            }
+
+            if (frontMatters.TryGetValue(kFrontMatterKeyType, out var noteType))
+            {
+                builder.WithType(noteType);
+            }
+
+            if (frontMatters.TryGetValue(kFrontMatterKeyCreated, out var timestampContent) && System.DateTime.TryParse(timestampContent, out var noteTimestamp))
+            {
+                builder.WithTimestamp(noteTimestamp);
+            }
+
+            return (true, await NoteBuilder.BuildAsync(builder.Build(), token));
         }
 
-        private Dictionary<string, string> ParseFrontMatter(string rawContent)
+        private (Dictionary<string, string> frontMatters, List<string>) ParseContent(string rawContent)
         {
-            var result = new Dictionary<string, string>();
-            var document = Markdown.Parse(rawContent, FrontMatterPipeline);
+            var frontMatters = new Dictionary<string, string>();
+            var links = new List<string>();
 
+            var document = Markdown.Parse(rawContent, MarkdownPipeline);
             foreach (var block in document)
             {
                 if (block is YamlFrontMatterBlock yamlFrontMatterBlock)
@@ -96,12 +122,59 @@ namespace Memo.Core.Notes
                         // ` "this is a test"` => `"this is a test"` => `this is a test`
                         var frontMatterValue = splitResult[1].Trim().Trim('"');
 
-                        result.Add(frontMatterKey, frontMatterValue);
+                        frontMatters.Add(frontMatterKey, frontMatterValue);
+                    }
+                }
+                else if (block is LinkReferenceDefinition linkReferenceDefinition)
+                {
+                    links.Add(linkReferenceDefinition.Url);
+                }
+                else if (block is LinkReferenceDefinitionGroup linkReferenceDefinitionGroup)
+                {
+                    foreach (var link in linkReferenceDefinitionGroup.Links)
+                    {
+                        links.Add(link.Value.Url);
+                    }
+                }
+                else if (block is ParagraphBlock paragraphBlock)
+                {
+                    foreach (var inline in paragraphBlock.Inline)
+                    {
+                        if (inline is LinkInline linkInline)
+                        {
+                            links.Add(linkInline.Url);
+                        }
                     }
                 }
             }
 
-            return result;
+            links = links.Where(link => !string.IsNullOrEmpty(link)).ToList();
+
+            return (frontMatters, links);
+        }
+
+        private bool TryParseLink(string link, out Categories.CategoryId categoryId, out Note.NoteId noteId)
+        {
+            categoryId = default;
+            noteId = default;
+
+            if (link.Length > 4 && link.IndexOf("http") == 0)
+            {
+                return false;
+            }
+
+            var splitResult = link.Split(Option.NoteDirectorySeparator);
+            if (splitResult.Length < 3)
+            {
+                return false;
+            }
+
+            categoryId = new Categories.CategoryId(
+                string.Join(Option.NoteDirectorySeparator, splitResult.SkipLast(2))
+            );
+            noteId = new Note.NoteId(splitResult.TakeLast(2).First());
+
+            return true;
         }
 
         private (Categories.CategoryId CategoryId, Note.NoteId NoteId) ParseId(FileInfo fileInfo)

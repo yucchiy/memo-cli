@@ -55,12 +55,12 @@ namespace Memo.Core.Categories.Test
             {
                 return Task.Run(() => new Notes.Note[]
                 {
-                    new Notes.Note(new Category(new CategoryId("test1")), new Notes.Note.NoteId("id1"), new Notes.Note.NoteTitle(""), null, null),
-                    new Notes.Note(new Category(new CategoryId("test2")), new Notes.Note.NoteId("id1"), new Notes.Note.NoteTitle(""), null, null),
-                    new Notes.Note(new Category(new CategoryId("test3")), new Notes.Note.NoteId("id1"), new Notes.Note.NoteTitle(""), null, null),
-                    new Notes.Note(new Category(new CategoryId("test1")), new Notes.Note.NoteId("id2"), new Notes.Note.NoteTitle(""), null, null),
-                    new Notes.Note(new Category(new CategoryId("test2/test12")), new Notes.Note.NoteId("id1"), new Notes.Note.NoteTitle(""), null, null),
-                    new Notes.Note(new Category(new CategoryId("test2")), new Notes.Note.NoteId("id2"), new Notes.Note.NoteTitle(""), null, null)
+                    new Notes.Note(new Category(new CategoryId("test1")), new Notes.Note.NoteId("id1"), new Notes.Note.NoteTitle(""), null, null, null, null),
+                    new Notes.Note(new Category(new CategoryId("test2")), new Notes.Note.NoteId("id1"), new Notes.Note.NoteTitle(""), null, null, null, null),
+                    new Notes.Note(new Category(new CategoryId("test3")), new Notes.Note.NoteId("id1"), new Notes.Note.NoteTitle(""), null, null, null, null),
+                    new Notes.Note(new Category(new CategoryId("test1")), new Notes.Note.NoteId("id2"), new Notes.Note.NoteTitle(""), null, null, null, null),
+                    new Notes.Note(new Category(new CategoryId("test2")), new Notes.Note.NoteId("id2"), new Notes.Note.NoteTitle(""), null, null, null, null),
+                    new Notes.Note(new Category(new CategoryId("test2/test12")), new Notes.Note.NoteId("id1"), new Notes.Note.NoteTitle(""), null, null, null, null)
                 } as IEnumerable<Notes.Note>);
             }
         }

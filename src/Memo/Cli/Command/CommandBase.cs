@@ -41,6 +41,7 @@ namespace Memo
             var noteRepository = new Core.Notes.NoteRepository(
                 new Core.Notes.NoteStorageFileSystemImpl(
                     new Core.Notes.NoteParser(
+                        new Core.Notes.NoteBuilder(),
                         new Core.Categories.CategoryConfigStore(cli.CommandConfig.MemoConfig.Categories),
                         (new Markdig.MarkdownPipelineBuilder())
                             .UseYamlFrontMatter().Build(),

@@ -21,7 +21,7 @@ namespace Memo.Core.Notes.Tests
 
             Assert.Equal(await repository.GetAllAsync(tokenSource.Token), new Note[0]);
 
-            var note = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id_1"), new Note.NoteTitle(""), null, null);
+            var note = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id_1"), new Note.NoteTitle(""), null, null, null, null);
 
             await repository.SaveAsync(note, tokenSource.Token);
 
@@ -40,7 +40,7 @@ namespace Memo.Core.Notes.Tests
                 new NoteQueryFilter()
             );
 
-            var note = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id_1"), new Note.NoteTitle(""), null, null);
+            var note = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id_1"), new Note.NoteTitle(""), null, null, null, null);
 
             Assert.Equal(await repository.SaveAsync(note, tokenSource.Token), note);
         }
@@ -50,7 +50,7 @@ namespace Memo.Core.Notes.Tests
         {
             var tokenSource = new CancellationTokenSource();
 
-            var note = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id_1"), new Note.NoteTitle(""), null, null);
+            var note = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id_1"), new Note.NoteTitle(""), null, null, null, null);
 
             var repository = new NoteRepository(
                 new NoteStorageMock(new Note[]{note}),
@@ -66,7 +66,7 @@ namespace Memo.Core.Notes.Tests
         {
             var tokenSource = new CancellationTokenSource();
 
-            var note = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id_1"), new Note.NoteTitle(""), null, null);
+            var note = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id_1"), new Note.NoteTitle(""), null, null, null, null);
 
             var repository = new NoteRepository(
                 new NoteStorageMock(new Note[]{note}),

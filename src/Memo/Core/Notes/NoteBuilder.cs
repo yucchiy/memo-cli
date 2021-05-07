@@ -35,6 +35,11 @@ namespace Memo.Core.Notes
 
         public Note.NoteId CreateId(in NoteCreationParameter parameter)
         {
+            if (parameter.Options.Id is Note.NoteId noteId)
+            {
+                return noteId;
+            }
+
             var timestamp = parameter.Options.Timestamp is System.DateTime ts ? ts : System.DateTime.Now;
             if (parameter.Options.Slug is Note.NoteSlug slug)
             {
@@ -61,7 +66,9 @@ namespace Memo.Core.Notes
                 CreateId(parameter),
                 CreateTitle(parameter),
                 parameter.Options.Type,
-                parameter.Options.Timestamp
+                parameter.Options.Timestamp,
+                parameter.Options.Links,
+                parameter.Options.InternalLinks
             );
         }
 

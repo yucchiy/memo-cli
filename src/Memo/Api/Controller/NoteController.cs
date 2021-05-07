@@ -29,8 +29,33 @@ namespace Memo
             builder.WithCategoryId(inputCategory);
             builder.WithQueryStrings(queries);
 
-            return (await NoteService.GetNotesAsync(builder.Build(), CancellationToken.None))
-                .Select(ToResponse);
+            var notes = await NoteService.GetNotesAsync(builder.Build(), CancellationToken.None);
+            var citations = BuildCitations(notes);
+
+            return notes.Select(note => ToResponse(note, citations));
+        }
+
+        private Dictionary<(Core.Categories.CategoryId, Core.Notes.Note.NoteId), List<(Core.Categories.CategoryId, Core.Notes.Note.NoteId)>> BuildCitations(IEnumerable<Core.Notes.Note> notes)
+        {
+            var citations = new Dictionary<(Core.Categories.CategoryId, Core.Notes.Note.NoteId), List<(Core.Categories.CategoryId, Core.Notes.Note.NoteId)>>();
+            foreach (var note in notes)
+            {
+                foreach (var internalLink in note.InternalLinks)
+                {
+                    if (citations.TryGetValue((internalLink.CategoryId, internalLink.NoteId), out var citation))
+                    {
+                        citation.Add((note.Category.Id, note.Id));
+                    }
+                    else
+                    {
+                        var addCitation = new List<(Core.Categories.CategoryId, Core.Notes.Note.NoteId)>();
+                        addCitation.Add((note.Category.Id, note.Id));
+                        citations.Add((internalLink.CategoryId, internalLink.NoteId), addCitation);
+                    }
+                }
+           }
+
+            return citations;
         }
 
         [HttpPost]
@@ -42,11 +67,15 @@ namespace Memo
             builder.WithQueryStrings(request.Options);
 
             var note = await NoteService.CreateNoteAsync(builder.Build(), CancellationToken.None);
-            return ToResponse(note);
+            return ToResponse(note, new Dictionary<(Core.Categories.CategoryId, Core.Notes.Note.NoteId), List<(Core.Categories.CategoryId, Core.Notes.Note.NoteId)>>(0));
         }
 
-        private MemoResponse ToResponse(Core.Notes.Note note)
+        private MemoResponse ToResponse(Core.Notes.Note note, Dictionary<(Core.Categories.CategoryId, Core.Notes.Note.NoteId), List<(Core.Categories.CategoryId, Core.Notes.Note.NoteId)>> citations)
         {
+            var citation = citations.TryGetValue((note.Category.Id, note.Id), out var cite) ? 
+                cite.Select(c => $"{Manager.GetRoot().FullName}/{c.Item1.Value}/{c.Item2.Value}/index.markdown") :
+                new string[0];
+
             return new MemoResponse()
             {
                 Category = note.Category.Id.Value,
@@ -54,6 +83,9 @@ namespace Memo
                 FilePath = $"{Manager.GetRoot().FullName}/{note.RelativePath}",
                 Title = note.Title.Value,
                 Type = (note.Type is Core.Notes.Note.NoteType noteType) ? noteType.Value : string.Empty,
+                InternalLinks = note.InternalLinks.Select(c => $"{Manager.GetRoot().FullName}/{c.Item1.Value}/{c.Item2.Value}/index.markdown"),
+                Links = note.Links,
+                Citations = citation,
             };
         }
 
@@ -72,6 +104,9 @@ namespace Memo
             public string FilePath { get; set; }
             public string Title { get; set; }
             public string Type { get; set; }
+            public IEnumerable<string> Links { get; set; }
+            public IEnumerable<string> InternalLinks { get; set; }
+            public IEnumerable<string>  Citations { get; set; }
         }
     }
 }

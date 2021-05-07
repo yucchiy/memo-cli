@@ -46,12 +46,15 @@ namespace Memo.Core.Notes
         }
 
         private Categories.CategoryId? CategoryName { get; set; } = default;
+        private Note.NoteId? Id { get; set; } = null;
         private Note.NoteSlug? Slug { get; set; } = null; 
         private Note.NoteTitle? Title { get; set; } = null;
         private Note.NoteType? Type { get; set; } = null;
         private DateTime? Timestamp { get; set; } = null;
         private NoteCreationOptionParameter.NoteCreationType? CreationType { get; set; } = null;
         private string? Url { get; set; } = null;
+        private IEnumerable<string>? Links { get; set; } = null;
+        private IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)>? InternalLinks { get; set; } = null;
 
         public NoteCreationParameterBuilder WithCategoryId(string categoryId)
         {
@@ -62,6 +65,16 @@ namespace Memo.Core.Notes
         {
             CategoryName = categoryId;
             return this;
+        }
+        public NoteCreationParameterBuilder WithId(Note.NoteId id)
+        {
+            Id = id;
+            return this;
+        }
+
+        public NoteCreationParameterBuilder WithId(string id)
+        {
+            return WithId(new Note.NoteId(id));
         }
 
         public NoteCreationParameterBuilder WithSlug(string slug)
@@ -115,6 +128,18 @@ namespace Memo.Core.Notes
             return this;
         }
 
+        public NoteCreationParameterBuilder WithLinks(IEnumerable<string> links)
+        {
+            Links = links;
+            return this;
+        }
+
+        public NoteCreationParameterBuilder WithInternalLinks(IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> internalLinks)
+        {
+            InternalLinks = internalLinks;
+            return this;
+        }
+
         public NoteCreationParameterBuilder WithQueryStrings(IEnumerable<string> optionStrings)
         {
             foreach (var option in optionStrings)
@@ -162,7 +187,7 @@ namespace Memo.Core.Notes
         {
             if (CategoryName is Categories.CategoryId categoryName)
             {
-                return new NoteCreationParameter(categoryName, new NoteCreationOptionParameter(Slug, Title, Type, Timestamp, CreationType, Url));
+                return new NoteCreationParameter(categoryName, new NoteCreationOptionParameter(Id, Slug, Title, Type, Timestamp, CreationType, Url, Links, InternalLinks));
             }
 
             throw new System.InvalidOperationException("CategoryName should specificate.");
