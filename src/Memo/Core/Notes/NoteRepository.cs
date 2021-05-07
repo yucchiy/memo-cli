@@ -18,6 +18,11 @@ namespace Memo.Core.Notes
 
         public async Task<Note> SaveAsync(Note note, CancellationToken token)
         {
+            if (await FindAsync(note.Category.Id, note.Id, token) is Note result)
+            {
+                return result;
+            }
+
             if (await Storage.WriteAsync(note, token))
             {
                 return note;
