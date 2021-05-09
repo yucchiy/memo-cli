@@ -19,10 +19,12 @@ namespace Memo.Core.Notes
         public class Options
         {
             public DirectoryInfo RootDirectory { get; }
+            public char NoteDirectorySeparator { get; }
 
-            public Options(DirectoryInfo rootDirectory)
+            public Options(DirectoryInfo rootDirectory, char noteDirectorySeparator = '/')
             {
                 RootDirectory = rootDirectory;
+                NoteDirectorySeparator = noteDirectorySeparator;
             }
         }
 
@@ -39,13 +41,13 @@ namespace Memo.Core.Notes
                 return false;
             }
 
-            var directoryInfo = new DirectoryInfo($"{Option.RootDirectory.FullName}/{note.Category.Id.Value}/{note.Id.Value}");
-            if (!directoryInfo.Exists)
+            var filePath = Path.Combine(Option.RootDirectory.FullName, note.RelativePath.Replace(Option.NoteDirectorySeparator, Path.DirectorySeparatorChar));
+            var fileInfo = new FileInfo(filePath);
+            if (!fileInfo.Directory.Exists)
             {
-                Directory.CreateDirectory(directoryInfo.FullName);
+                Directory.CreateDirectory(fileInfo.Directory.FullName);
             }
 
-            var fileInfo = new FileInfo($"{directoryInfo.FullName}/index.markdown");
             await File.WriteAllTextAsync(fileInfo.FullName, result.RawContent, token);
 
             return true;

@@ -13,7 +13,7 @@ namespace Memo.Core.Notes.Tests
         {
             using (var rootDirectory = new TemporaryDirectory($"{typeof(NoteStorageTest).FullName}_ReadAsyncAll_Test-"))
             {
-                var storage = new NoteStorageFileSystemImpl(new NoteParser(new NoteBuilder(), new Categories.CategoryConfigStore(new MemoConfig.CategoryConfig[0]), new NoteParser.Options(rootDirectory.Dir, '/')), new NoteStorageFileSystemImpl.Options(rootDirectory.Dir));
+                var storage = new NoteStorageFileSystemImpl(new NoteSerializer(new NoteBuilder(), new Categories.CategoryConfigStore(new MemoConfig.CategoryConfig[0]), new NoteSerializer.Options(rootDirectory.Dir, '/')), new NoteStorageFileSystemImpl.Options(rootDirectory.Dir));
 
                 var content = @"---
 title: TestTitle
@@ -35,9 +35,28 @@ title: TestTitle
         public async void ReadAsyncAll_RealWorldTest_Dotnote()
         {
             var rootDirectory = new System.IO.DirectoryInfo("/Users/yucchiy/.ghq/github.com/yucchiy/dotnote");
-            var storage = new NoteStorageFileSystemImpl(new NoteParser(new NoteBuilder(), new Categories.CategoryConfigStore(new MemoConfig.CategoryConfig[0]), new NoteParser.Options(rootDirectory, '/')), new NoteStorageFileSystemImpl.Options(rootDirectory));
+            var storage = new NoteStorageFileSystemImpl(new NoteSerializer(new NoteBuilder(), new Categories.CategoryConfigStore(new MemoConfig.CategoryConfig[0]), new NoteSerializer.Options(rootDirectory, '/')), new NoteStorageFileSystemImpl.Options(rootDirectory));
 
             var notes = await storage.ReadAllAsync(CancellationToken.None);
+        }
+
+        [Fact]
+        public async void WriteAsync_Test()
+        {
+            using (var rootDirectory = new TemporaryDirectory($"{typeof(NoteStorageTest).FullName}_ReadAsyncAll_Test-"))
+            {
+                var storage = new NoteStorageFileSystemImpl(new NoteSerializer(new NoteBuilder(), new Categories.CategoryConfigStore(new MemoConfig.CategoryConfig[0]), new NoteSerializer.Options(rootDirectory.Dir, '/')), new NoteStorageFileSystemImpl.Options(rootDirectory.Dir));
+
+                var parameter = (new NoteCreationParameterBuilder())
+                    .WithCategoryId("cat1/cat2")
+                    .WithSlug("slug1")
+                    .WithCreationType(NoteCreationOptionParameter.NoteCreationType.Default)
+                    .Build();
+
+                var note = await (new NoteBuilder()).BuildAsync(parameter, CancellationToken.None);
+
+                var content = await storage.WriteAsync(note, CancellationToken.None);
+            }
         }
     }
 }

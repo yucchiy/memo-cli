@@ -33,7 +33,7 @@ namespace Memo.Core.Notes
             return BuildDefault(in parameter);
         }
 
-        public Note.NoteId CreateId(in NoteCreationParameter parameter)
+        private Note.NoteId CreateId(in NoteCreationParameter parameter)
         {
             if (parameter.Options.Id is Note.NoteId noteId)
             {
@@ -59,6 +59,16 @@ namespace Memo.Core.Notes
             return new Note.NoteTitle("");
         }
 
+        private System.DateTime CreateTimestamp(NoteCreationParameter parameter)
+        {
+            if (parameter.Options.Timestamp is System.DateTime timestamp)
+            {
+                return timestamp;
+            }
+
+            return System.DateTime.Now;
+        }
+
         private Note BuildDefault(in NoteCreationParameter parameter)
         {
             return new Note(
@@ -66,7 +76,7 @@ namespace Memo.Core.Notes
                 CreateId(parameter),
                 CreateTitle(parameter),
                 parameter.Options.Type,
-                parameter.Options.Timestamp,
+                CreateTimestamp(parameter),
                 parameter.Options.Links,
                 parameter.Options.InternalLinks
             );
@@ -109,9 +119,9 @@ namespace Memo.Core.Notes
                 builder.WithTitle($"{timestamp.ToString(HumanReadableTimestampFormat)} - {parameter.CategoryId.Value}");
             }
 
-
             return BuildDefault(builder.Build());
         }
+
         private async Task<Note> BuildUrlAsync(NoteCreationParameter parameter, CancellationToken token)
         {
             if (string.IsNullOrEmpty(parameter.Options.Url))

@@ -33,8 +33,8 @@ namespace Memo.Core.Notes
                 var pipeline = new MarkdownPipelineBuilder()
                     .UseYamlFrontMatter()
                     .Build();
-                var option = new NoteParser.Options(root.Dir, '/');
-                var parser = new NoteParser(new NoteBuilder(), new Categories.CategoryConfigStore(new MemoConfig.CategoryConfig[0]), pipeline, option);
+                var option = new NoteSerializer.Options(root.Dir, '/');
+                var parser = new NoteSerializer(new NoteBuilder(), new Categories.CategoryConfigStore(new MemoConfig.CategoryConfig[0]), pipeline, option);
 
                 var (result, note) = await parser.DeserializeNoteAsync(new FileInfo(filePath), tokenSource.Token);
 
@@ -73,8 +73,8 @@ namespace Memo.Core.Notes
                 var pipeline = new MarkdownPipelineBuilder()
                     .UseYamlFrontMatter()
                     .Build();
-                var option = new NoteParser.Options(root.Dir, '/');
-                var parser = new NoteParser(new NoteBuilder(), new Categories.CategoryConfigStore(new MemoConfig.CategoryConfig[0]), pipeline, option);
+                var option = new NoteSerializer.Options(root.Dir, '/');
+                var parser = new NoteSerializer(new NoteBuilder(), new Categories.CategoryConfigStore(new MemoConfig.CategoryConfig[0]), pipeline, option);
 
                 var (result, note) = await parser.DeserializeNoteAsync(new FileInfo(filePath), tokenSource.Token);
 

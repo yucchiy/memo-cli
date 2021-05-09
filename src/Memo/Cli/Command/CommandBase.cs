@@ -40,12 +40,12 @@ namespace Memo
 
             var noteRepository = new Core.Notes.NoteRepository(
                 new Core.Notes.NoteStorageFileSystemImpl(
-                    new Core.Notes.NoteParser(
+                    new Core.Notes.NoteSerializer(
                         new Core.Notes.NoteBuilder(),
                         new Core.Categories.CategoryConfigStore(cli.CommandConfig.MemoConfig.Categories),
                         (new Markdig.MarkdownPipelineBuilder())
                             .UseYamlFrontMatter().Build(),
-                        new Core.Notes.NoteParser.Options(cli.CommandConfig.HomeDirectory, '/')
+                        new Core.Notes.NoteSerializer.Options(cli.CommandConfig.HomeDirectory, '/')
                     ),
                     new Core.Notes.NoteStorageFileSystemImpl.Options(cli.CommandConfig.HomeDirectory)
                 ),

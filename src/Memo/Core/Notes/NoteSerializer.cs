@@ -11,7 +11,7 @@ using System;
 
 namespace Memo.Core.Notes
 {
-    public class NoteParser : INoteSerializer
+    public class NoteSerializer : INoteSerializer
     {
         private static readonly HashSet<string> AcceptedExtensions = new HashSet<string>(new string[]{".md", ".markdown"});
         private static readonly char FrontMatterSeparator = ':';
@@ -37,7 +37,7 @@ namespace Memo.Core.Notes
             }
         }
 
-        public NoteParser(INoteBuilder noteBuilder, Categories.ICategoryConfigStore categoryConfigStore, Options option)
+        public NoteSerializer(INoteBuilder noteBuilder, Categories.ICategoryConfigStore categoryConfigStore, Options option)
         {
             NoteBuilder = noteBuilder;
             CategoryConfigStore = categoryConfigStore;
@@ -48,7 +48,7 @@ namespace Memo.Core.Notes
             Option = option;
         }
 
-        public NoteParser(INoteBuilder noteBuilder, Categories.ICategoryConfigStore categoryConfigStore, MarkdownPipeline markdownPipeline, Options option)
+        public NoteSerializer(INoteBuilder noteBuilder, Categories.ICategoryConfigStore categoryConfigStore, MarkdownPipeline markdownPipeline, Options option)
         {
             NoteBuilder = noteBuilder;
             CategoryConfigStore = categoryConfigStore;

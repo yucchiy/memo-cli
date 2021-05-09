@@ -73,7 +73,7 @@ namespace Memo.Core.Notes
         public IEnumerable<string> Links { get; }
         public IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> InternalLinks { get; }
 
-        public string RelativePath { get => $"{Category.Id.Value}/{Id.Value}/index.markdown"; }
+        public string RelativePath { get => $"{Category.Id.Value}/{Id.Value}/{Id.Value}.markdown"; }
 
         public Note(Categories.Category category, NoteId id, NoteTitle title, NoteType? type, DateTime? created, IEnumerable<string> links, IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> internalLinks)
         {
