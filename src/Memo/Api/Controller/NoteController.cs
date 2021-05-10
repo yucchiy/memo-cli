@@ -50,7 +50,6 @@ namespace Memo
                     {
                         var addCitation = new List<string>();
                         addCitation.Add(note.RelativePath);
-                        System.Console.WriteLine($"Add cite: {note.RelativePath}");
                         citations.Add(internalLink, addCitation);
                     }
                 }
@@ -85,7 +84,7 @@ namespace Memo
                 Type = (note.Type is Core.Notes.Note.NoteType noteType) ? noteType.Value : string.Empty,
                 InternalLinks = new string[0],
                 Links = note.Links != null ? note.Links : new string[0],
-                Citations = citation,
+                Citations = citation.Select(cite => $"{Manager.GetRoot().FullName}/{cite}"),
             };
         }
 
