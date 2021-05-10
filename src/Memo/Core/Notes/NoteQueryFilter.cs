@@ -3,7 +3,7 @@ namespace Memo.Core.Notes
 {
     public class NoteQueryFilter : INoteQueryFilter
     {
-        public bool FilterNote(in Note note, in NoteSearchQuery query)
+        public bool FilterNote(Note note, in NoteSearchQuery query)
         {
             if (query.Id is Note.NoteId id) 
             {

@@ -32,7 +32,7 @@ namespace Memo.Core.Notes
                 Type = type;
             } 
 
-             if (parameter.Options.Timestamp is DateTime timestamp)
+             if (parameter.Options.Timestamp is Note.NoteTimestamp timestamp)
             {
                 Timestamp = timestamp;
             }
@@ -46,11 +46,10 @@ namespace Memo.Core.Notes
         }
 
         private Categories.CategoryId? CategoryName { get; set; } = default;
-        private Note.NoteId? Id { get; set; } = null;
         private Note.NoteSlug? Slug { get; set; } = null; 
         private Note.NoteTitle? Title { get; set; } = null;
         private Note.NoteType? Type { get; set; } = null;
-        private DateTime? Timestamp { get; set; } = null;
+        private Note.NoteTimestamp? Timestamp { get; set; } = null;
         private NoteCreationOptionParameter.NoteCreationType? CreationType { get; set; } = null;
         private string? Url { get; set; } = null;
         private IEnumerable<string> Links { get; set; } = new string[0];
@@ -65,16 +64,6 @@ namespace Memo.Core.Notes
         {
             CategoryName = categoryId;
             return this;
-        }
-        public NoteCreationParameterBuilder WithId(Note.NoteId id)
-        {
-            Id = id;
-            return this;
-        }
-
-        public NoteCreationParameterBuilder WithId(string id)
-        {
-            return WithId(new Note.NoteId(id));
         }
 
         public NoteCreationParameterBuilder WithSlug(string slug)
@@ -110,7 +99,7 @@ namespace Memo.Core.Notes
             return this;
         }
 
-        public NoteCreationParameterBuilder WithTimestamp(DateTime timestamp)
+        public NoteCreationParameterBuilder WithTimestamp(Note.NoteTimestamp timestamp)
         {
             Timestamp = timestamp;
             return this;
@@ -185,9 +174,12 @@ namespace Memo.Core.Notes
 
         public NoteCreationParameter Build()
         {
+            var timestamp = Timestamp is Notes.Note.NoteTimestamp ts ? ts : new Notes.Note.NoteTimestamp(System.DateTime.Now);
+            var slug = Slug is Notes.Note.NoteSlug slg ? slg : new Notes.Note.NoteSlug("index");
+
             if (CategoryName is Categories.CategoryId categoryName)
             {
-                return new NoteCreationParameter(categoryName, new NoteCreationOptionParameter(Id, Slug, Title, Type, Timestamp, CreationType, Url, Links, InternalLinks));
+                return new NoteCreationParameter(categoryName, new NoteCreationOptionParameter(timestamp, slug, Title, Type, CreationType, Url, Links, InternalLinks));
             }
 
             throw new System.InvalidOperationException("CategoryName should specificate.");

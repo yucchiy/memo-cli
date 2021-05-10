@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -5,8 +6,6 @@ namespace Memo.Core.Notes
 {
     public class NoteBuilder : INoteBuilder
     {
-        private static readonly char IdSeparator = '_';
-        private static readonly string IdTimestampFormat = "yyyyMMddHHmmss";
         private static readonly string HumanReadableTimestampFormat = "yyyy/MM/dd";
 
         public NoteBuilder()
@@ -33,22 +32,6 @@ namespace Memo.Core.Notes
             return BuildDefault(in parameter);
         }
 
-        private Note.NoteId CreateId(in NoteCreationParameter parameter)
-        {
-            if (parameter.Options.Id is Note.NoteId noteId)
-            {
-                return noteId;
-            }
-
-            var timestamp = parameter.Options.Timestamp is System.DateTime ts ? ts : System.DateTime.Now;
-            if (parameter.Options.Slug is Note.NoteSlug slug)
-            {
-                return new Note.NoteId($"{timestamp.ToString(IdTimestampFormat)}{IdSeparator}{slug.Value}");
-            }
-
-            return new Note.NoteId($"{timestamp.ToString(IdTimestampFormat)}{IdSeparator}");
-        }
-
         private Note.NoteTitle CreateTitle(NoteCreationParameter parameter)
         {
             if (parameter.Options.Title is Note.NoteTitle title)
@@ -59,24 +42,34 @@ namespace Memo.Core.Notes
             return new Note.NoteTitle("");
         }
 
-        private System.DateTime CreateTimestamp(NoteCreationParameter parameter)
+        private Note.NoteTimestamp CreateTimestamp(NoteCreationParameter parameter)
         {
-            if (parameter.Options.Timestamp is System.DateTime timestamp)
+            if (parameter.Options.Timestamp is Note.NoteTimestamp timestamp)
             {
                 return timestamp;
             }
 
-            return System.DateTime.Now;
+            return new Note.NoteTimestamp(System.DateTime.Now);
+        }
+
+        private Note.NoteSlug CreateSlug(NoteCreationParameter parameter)
+        {
+            if (parameter.Options.Slug is Note.NoteSlug slug)
+            {
+                return slug;
+            }
+
+            return new Note.NoteSlug("index");
         }
 
         private Note BuildDefault(in NoteCreationParameter parameter)
         {
             return new Note(
                 new Categories.Category(parameter.CategoryId),
-                CreateId(parameter),
+                CreateTimestamp(parameter),
+                CreateSlug(parameter),
                 CreateTitle(parameter),
                 parameter.Options.Type,
-                CreateTimestamp(parameter),
                 parameter.Options.Links,
                 parameter.Options.InternalLinks
             );
@@ -84,8 +77,8 @@ namespace Memo.Core.Notes
 
         private Note BuildDaily(in NoteCreationParameter parameter)
         {
-            var timestamp = parameter.Options.Timestamp is System.DateTime dt ? dt : System.DateTime.Now;
-            var dailyTimestamp = new System.DateTime(timestamp.Year, timestamp.Month, timestamp.Day, System.Globalization.CultureInfo.CurrentCulture.Calendar);
+            var timestamp = parameter.Options.Timestamp is Note.NoteTimestamp ts ? ts : new Note.NoteTimestamp(System.DateTime.Now);
+            var dailyTimestamp = new Note.NoteTimestamp(new System.DateTime(timestamp.Value.Year, timestamp.Value.Month, timestamp.Value.Day, System.Globalization.CultureInfo.CurrentCulture.Calendar));
 
            var builder = new NoteCreationParameterBuilder(in parameter)
                 .WithCreationType(NoteCreationOptionParameter.NoteCreationType.Default)
@@ -93,11 +86,11 @@ namespace Memo.Core.Notes
 
             if (parameter.Options.Title is Note.NoteTitle title)
             {
-                builder.WithTitle($"{title.Value} - {dailyTimestamp.ToString(HumanReadableTimestampFormat)}");
+                builder.WithTitle($"{title.Value} - {dailyTimestamp.Value.ToString(HumanReadableTimestampFormat)}");
             }
             else
             {
-                builder.WithTitle($"{dailyTimestamp.ToString(HumanReadableTimestampFormat)} - {parameter.CategoryId.Value}");
+                builder.WithTitle($"{dailyTimestamp.Value.ToString(HumanReadableTimestampFormat)} - {parameter.CategoryId.Value}");
             }
 
             return BuildDefault(builder.Build());
@@ -105,18 +98,18 @@ namespace Memo.Core.Notes
 
         private Note BuildWeekly(in NoteCreationParameter parameter)
         {
-            var timestamp = Utility.FirstDayOfWeek();
+            var timestamp = new Note.NoteTimestamp(Utility.FirstDayOfWeek());
             var builder = new NoteCreationParameterBuilder(in parameter)
                 .WithCreationType(NoteCreationOptionParameter.NoteCreationType.Default)
                 .WithTimestamp(timestamp);
 
             if (parameter.Options.Title is Note.NoteTitle title)
             {
-                builder.WithTitle($"{title.Value} - {timestamp.ToString(HumanReadableTimestampFormat)}");
+                builder.WithTitle($"{title.Value} - {timestamp.Value.ToString(HumanReadableTimestampFormat)}");
             }
             else
             {
-                builder.WithTitle($"{timestamp.ToString(HumanReadableTimestampFormat)} - {parameter.CategoryId.Value}");
+                builder.WithTitle($"{timestamp.Value.ToString(HumanReadableTimestampFormat)} - {parameter.CategoryId.Value}");
             }
 
             return BuildDefault(builder.Build());

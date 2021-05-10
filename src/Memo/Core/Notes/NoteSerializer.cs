@@ -72,12 +72,13 @@ namespace Memo.Core.Notes
                 return (false, default);
             }
 
-            var (categoryId, noteId) = ids;
+            var (categoryId, noteTimestamp, noteSlug) = ids;
             var (frontMatters, links) = ParseContent(rawContent);
 
             var builder = (new NoteCreationParameterBuilder())
+                .WithSlug(noteSlug)
+                .WithTimestamp(noteTimestamp)
                 .WithCategoryId(categoryId)
-                .WithId(noteId)
                 .WithLinks(links.Where(link => link.Length > 4 && link.IndexOf("http") == 0))
                 .WithInternalLinks(
                     links
@@ -93,11 +94,6 @@ namespace Memo.Core.Notes
             if (frontMatters.TryGetValue(kFrontMatterKeyType, out var noteType))
             {
                 builder.WithType(noteType);
-            }
-
-            if (frontMatters.TryGetValue(kFrontMatterKeyCreated, out var timestampContent) && System.DateTime.TryParse(timestampContent, out var noteTimestamp))
-            {
-                builder.WithTimestamp(noteTimestamp);
             }
 
             return (true, await NoteBuilder.BuildAsync(builder.Build(), token));
@@ -182,29 +178,29 @@ namespace Memo.Core.Notes
             return true;
         }
 
-        private bool TryParseId(FileInfo fileInfo, out (Categories.CategoryId CategoryId, Note.NoteId NoteId) ids)
+        private bool TryParseId(FileInfo fileInfo, out (Categories.CategoryId CategoryId, Note.NoteTimestamp timestamp, Note.NoteSlug slug) ids)
         {
             var relativePath = Path.GetRelativePath(Option.RootDirectory.FullName, fileInfo.Directory.FullName).Replace(Path.PathSeparator, Option.NoteDirectorySeparator);
             if (AcceptedExtensions.Contains(fileInfo.Extension))
             {
-                // /path/to/root/category1/category2/test_note/anyname.markdown
+                // /path/to/root/category1/category2/timestamp/slug.markdown
                 // category id: category1/category2
-                // note id: test_note
+                // note id: timestamp/slug
                 var splitResult = relativePath.Split(Option.NoteDirectorySeparator);
                 var categoryId = new Categories.CategoryId(
                     string.Join(Option.NoteDirectorySeparator, splitResult.SkipLast(1))
                 );
-                var noteId = new Note.NoteId(splitResult.TakeLast(1).First());
+                var slug = new Note.NoteSlug(Path.GetFileNameWithoutExtension(fileInfo.FullName));
+                if (DateTime.TryParseExact(splitResult.TakeLast(1).First(), Note.NoteTimestamp.NoteTimestampFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var timestamp))
+                {
+                    ids = (categoryId, new Note.NoteTimestamp(timestamp), slug);
+                    return true;
+                }
+            }
 
-                ids = (categoryId, noteId);
-                return true;
-            }
-            else
-            {
-                ids = default;
-                return false;
-            }
-       }
+            ids = default;
+            return false;
+        }
 
         public async Task<(bool Success, string RawContent)> SerializeNoteAsync(Note note, CancellationToken token)
         {
@@ -222,10 +218,7 @@ namespace Memo.Core.Notes
                 stringBuilder.AppendLine($"{kFrontMatterKeyType}: {noteType.Value}");
             }
 
-            if (note.Created is DateTime created)
-            {
-                stringBuilder.AppendLine($"{kFrontMatterKeyCreated}: {created.ToString("yyyy-MM-ddTHH:mm:ss")}");
-            }
+            stringBuilder.AppendLine($"{kFrontMatterKeyCreated}: {note.Timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss")}");
 
             stringBuilder.AppendLine("");
             stringBuilder.AppendLine("---");

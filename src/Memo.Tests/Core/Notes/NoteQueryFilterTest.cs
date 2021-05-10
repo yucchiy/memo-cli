@@ -1,4 +1,5 @@
 using Xunit;
+using System.Threading;
 
 namespace Memo.Core.Notes.Tests
 {
@@ -10,7 +11,7 @@ namespace Memo.Core.Notes.Tests
         }
 
         [Fact]
-        public void Filter_CategoryName()
+        public async void Filter_CategoryName()
         {
             var queryFilter = new NoteQueryFilter();
 
@@ -21,8 +22,17 @@ namespace Memo.Core.Notes.Tests
                 .WithCategoryId("test_category_2")
                 .Build();
 
-            var note1 = new Note(new Categories.Category(new Categories.CategoryId("test_category_1")), new Note.NoteId("id"), new Note.NoteTitle(""), null, null, null, null);
-            var note2 = new Note(new Categories.Category(new Categories.CategoryId("test_category_2")), new Note.NoteId("id"), new Note.NoteTitle(""), null, null, null, null);
+            var builder = new NoteBuilder();
+
+            var n1parameter = (new NoteCreationParameterBuilder())
+                .WithCategoryId("test_category_1")
+                .Build();
+            var n2parameter = (new NoteCreationParameterBuilder())
+                .WithCategoryId("test_category_2")
+                .Build();
+
+            var note1 = await builder.BuildAsync(n1parameter, CancellationToken.None);
+            var note2 = await builder.BuildAsync(n1parameter, CancellationToken.None);
 
             Assert.True(queryFilter.FilterNote(note1, query1));
             Assert.False(queryFilter.FilterNote(note1, query2));

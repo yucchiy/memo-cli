@@ -43,7 +43,7 @@ namespace Memo.Core.Notes
                 Assert.Equal(note.Id, new Note.NoteId("20210101000000_test_note"));
                 Assert.Equal(note.Type, new Note.NoteType("inbox"));
                 Assert.Equal(note.Title, new Note.NoteTitle("this is a test title"));
-                Assert.False(note.Created.HasValue);
+                Assert.False(note.Timestamp.HasValue);
             }
         }
 
@@ -83,7 +83,7 @@ namespace Memo.Core.Notes
                 Assert.Equal(note.Id, new Note.NoteId("20210101000000_test_note"));
                 Assert.Equal(note.Type, new Note.NoteType("inbox"));
                 Assert.Equal(note.Title, new Note.NoteTitle("this is a test title"));
-                Assert.False(note.Created.HasValue);
+                Assert.False(note.Timestamp.HasValue);
              }
         }
     }

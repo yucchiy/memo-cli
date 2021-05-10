@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Memo.Core.Notes
 {
-    public readonly struct Note
+    public class Note
     {
         public readonly struct NoteId : IEquatable<NoteId>
         {
@@ -65,23 +65,40 @@ namespace Memo.Core.Notes
             public override string ToString() => $"NoteType {Value.ToString()}";
         }
 
+        public readonly struct NoteTimestamp : IEquatable<NoteTimestamp>
+        {
+            public static readonly string NoteTimestampFormat = "yyyyMMddHHmmss";
+            public DateTime Value { get; }
+
+            public NoteTimestamp(DateTime value)
+            {
+                Value = value;
+            }
+
+            public bool Equals(NoteTimestamp other) => Value.Equals(other.Value);
+            public override bool Equals(object obj) => obj is NoteTimestamp other && Equals(other);
+            public override int GetHashCode() => Value.GetHashCode();
+            public override string ToString() => Value.ToString(NoteTimestampFormat);
+        }
+
         public Categories.Category Category { get; }
-        public NoteId Id { get; }
+        public NoteId Id { get => new NoteId($"{Timestamp}/{Slug.Value}"); }
         public NoteTitle Title { get; }
         public NoteType? Type { get; }
-        public DateTime? Created { get; }
+        public NoteSlug Slug { get; }
+        public NoteTimestamp Timestamp { get; }
         public IEnumerable<string> Links { get; }
         public IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> InternalLinks { get; }
 
-        public string RelativePath { get => $"{Category.Id.Value}/{Id.Value}/{Id.Value}.markdown"; }
+        public string RelativePath { get => $"{Category.Id.Value}/{Id.Value}.markdown"; }
 
-        public Note(Categories.Category category, NoteId id, NoteTitle title, NoteType? type, DateTime? created, IEnumerable<string> links, IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> internalLinks)
+        public Note(Categories.Category category, NoteTimestamp timestamp, NoteSlug slug, NoteTitle title, NoteType? type, IEnumerable<string> links, IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> internalLinks)
         {
             Category = category;
-            Id = id;
             Title = title;
             Type = type;
-            Created = created;
+            Timestamp = timestamp;
+            Slug = slug;
             Links = links;
             InternalLinks = internalLinks;
         }

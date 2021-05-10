@@ -56,6 +56,10 @@ namespace Memo.Core.Notes
                         case "id":
                             WithId(result.Value);
                             break;
+                        case "slug":
+                            break;
+                        case "timestamp":
+                            break;
                     }
                 }
             }

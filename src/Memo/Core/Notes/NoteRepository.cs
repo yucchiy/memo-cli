@@ -46,8 +46,7 @@ namespace Memo.Core.Notes
 
         public async Task<IEnumerable<Note>> GetAllAsync(CancellationToken token)
         {
-            return (await Storage.ReadAllAsync(token))
-                .Distinct(new NoteKeyComparator());
+            return (await Storage.ReadAllAsync(token));
         }
  
         public async Task<IEnumerable<Note>> SearchAsync(NoteSearchQuery query, CancellationToken token)

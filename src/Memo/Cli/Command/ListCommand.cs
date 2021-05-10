@@ -65,7 +65,7 @@ namespace Memo
             foreach (var note in notes)
             {
                 var path = withRelativePath ? note.RelativePath : $"{Context.CommandConfig.HomeDirectory.FullName}/{note.RelativePath}";
-                await Context.Output.WriteLineAsync(template.Render(new { Path = path, Category = note.Category.Id.Value, Type = note.Type?.Value, Created = note.Created, Title = note.Title.Value }));
+                await Context.Output.WriteLineAsync(template.Render(new { Path = path, Category = note.Category.Id.Value, Type = note.Type?.Value, Created = note.Timestamp, Title = note.Title.Value }));
             }
             
             return Cli.SuccessExitCode;
