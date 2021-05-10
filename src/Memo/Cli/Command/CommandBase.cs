@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Markdig;
 
+using Memo.Core;
+
 namespace Memo
 {
     public abstract class CommandBase<TInputType> : IMemoCommand
@@ -12,7 +14,6 @@ namespace Memo
     {
         public class MemoContext
         {
-            public MemoManager MemoManager { get; }
             public CommandConfig CommandConfig { get; }
             public TextWriter Output { get; }
             public IConsole Console { get; }
@@ -20,9 +21,8 @@ namespace Memo
             public Core.Notes.INoteService NoteService { get; }
             public Core.Categories.ICategoryService CategoryService { get; }
 
-            public MemoContext(MemoManager memoManager, CommandConfig commandConfig, TextWriter output, Core.Notes.INoteService noteService, Core.Categories.ICategoryService categoryService)
+            public MemoContext(CommandConfig commandConfig, TextWriter output, Core.Notes.INoteService noteService, Core.Categories.ICategoryService categoryService)
             {
-                MemoManager = memoManager;
                 CommandConfig = commandConfig;
                 Output = output;
                 NoteService = noteService;
@@ -61,7 +61,6 @@ namespace Memo
             );
 
             Context = new MemoContext(
-                new MemoManager(),
                 cli.CommandConfig,
                 cli.Output,
                 noteService,

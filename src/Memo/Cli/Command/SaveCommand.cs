@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Threading;
 using System.Threading.Tasks;
+using Memo.Core;
 
 namespace Memo
 {

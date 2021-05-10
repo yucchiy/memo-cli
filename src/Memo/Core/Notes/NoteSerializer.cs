@@ -215,7 +215,7 @@ namespace Memo.Core.Notes
             var stringBuilder = new System.Text.StringBuilder();
 
             stringBuilder.AppendLine("---");
-            stringBuilder.AppendLine($"{kFrontMatterKeyTitle}: {note.Title.Value}");
+            stringBuilder.AppendLine($"{kFrontMatterKeyTitle}: \"{note.Title.Value}\"");
 
             if (note.Type is Note.NoteType noteType)
             {
@@ -227,7 +227,9 @@ namespace Memo.Core.Notes
                 stringBuilder.AppendLine($"{kFrontMatterKeyCreated}: {created.ToString("yyyy-MM-ddTHH:mm:ss")}");
             }
 
+            stringBuilder.AppendLine("");
             stringBuilder.AppendLine("---");
+            stringBuilder.AppendLine("");
             stringBuilder.Append(template.RenderAsync(options));
 
             return (true, stringBuilder.ToString());

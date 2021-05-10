@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.CommandLine.Builder;
 using System.IO;
+using Memo.Core;
 
 namespace Memo
 {

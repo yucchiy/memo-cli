@@ -1,7 +1,6 @@
 using System.Runtime.Serialization;
-using System;
 
-namespace Memo
+namespace Memo.Core
 {
     public class MemoConfig
     {

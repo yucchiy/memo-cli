@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Markdig;
+using Memo.Core;
 
 namespace Memo
 {
@@ -25,6 +26,7 @@ namespace Memo
             {
                 var config = new CommandConfig();
 
+                // TODO: using DI Container
                 var noteRepository = new Core.Notes.NoteRepository(
                     new Core.Notes.NoteStorageFileSystemImpl(
                         new Core.Notes.NoteSerializer(

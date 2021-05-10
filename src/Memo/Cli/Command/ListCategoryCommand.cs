@@ -15,14 +15,7 @@ namespace Memo
 
         protected override Command CreateCommand()
         {
-            var command = new Command("list-category")
-            {
-                new Option<string>(
-                    new string[] {"--category", "-c"},
-                    () => string.Empty,
-                    "Filter list by category name with regular expression"
-                ),
-            };
+            var command = new Command("list-category");
             command.AddAlias("ls-category");
 
             return command;
@@ -30,23 +23,12 @@ namespace Memo
 
         protected override async Task<int> ExecuteCommand(Input input, CancellationToken token)
         {
-            foreach (var category in CollectCategories(input.Category))
+            foreach (var category in await Context.CategoryService.GetAllAsync(token))
             {
-                await Context.Output.WriteAsync(string.Format("{0}\n", category.Name));
+                await Context.Output.WriteAsync(string.Format("{0}\n", category.Id));
             }
 
             return Cli.SuccessExitCode;
-        }
-
-        private Category[] CollectCategories(string categoryPattern)
-        {
-            var categories = Context.MemoManager.GetCategories();
-            if (string.IsNullOrEmpty(categoryPattern)) return categories;
-
-            return categories
-                .Where(category => Regex.IsMatch(category.Name, categoryPattern))
-                .OrderBy(category => category.Name)
-                .ToArray();
         }
     }
 }

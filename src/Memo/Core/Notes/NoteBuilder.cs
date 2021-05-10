@@ -46,7 +46,7 @@ namespace Memo.Core.Notes
                 return new Note.NoteId($"{timestamp.ToString(IdTimestampFormat)}{IdSeparator}{slug.Value}");
             }
 
-            return new Note.NoteId($"{timestamp.ToString(IdTimestampFormat)}");
+            return new Note.NoteId($"{timestamp.ToString(IdTimestampFormat)}{IdSeparator}");
         }
 
         private Note.NoteTitle CreateTitle(NoteCreationParameter parameter)

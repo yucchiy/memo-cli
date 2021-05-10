@@ -1,6 +1,6 @@
-namespace Memo
+namespace Memo.Core
 {
-    public enum CreationType 
+    public enum CreationType
     {
         Default,
         Daily,

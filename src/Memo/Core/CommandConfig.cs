@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Utf8Json;
 
-namespace Memo
+namespace Memo.Core
 {
     public class CommandConfig
     {
