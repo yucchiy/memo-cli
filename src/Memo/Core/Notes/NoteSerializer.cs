@@ -67,7 +67,12 @@ namespace Memo.Core.Notes
 
             var rawContent = await File.ReadAllTextAsync(fileInfo.FullName);
 
-            var (categoryId, noteId) = ParseId(fileInfo);
+            if (!TryParseId(fileInfo, out var ids))
+            {
+                return (false, default);
+            }
+
+            var (categoryId, noteId) = ids;
             var (frontMatters, links) = ParseContent(rawContent);
 
             var builder = (new NoteCreationParameterBuilder())
@@ -177,12 +182,12 @@ namespace Memo.Core.Notes
             return true;
         }
 
-        private (Categories.CategoryId CategoryId, Note.NoteId NoteId) ParseId(FileInfo fileInfo)
+        private bool TryParseId(FileInfo fileInfo, out (Categories.CategoryId CategoryId, Note.NoteId NoteId) ids)
         {
             var relativePath = Path.GetRelativePath(Option.RootDirectory.FullName, fileInfo.Directory.FullName).Replace(Path.PathSeparator, Option.NoteDirectorySeparator);
-            if (fileInfo.Name.IndexOf("index") == 0 && AcceptedExtensions.Contains(fileInfo.Extension))
+            if (AcceptedExtensions.Contains(fileInfo.Extension))
             {
-                // /path/to/root/category1/category2/test_note/index.markdown
+                // /path/to/root/category1/category2/test_note/anyname.markdown
                 // category id: category1/category2
                 // note id: test_note
                 var splitResult = relativePath.Split(Option.NoteDirectorySeparator);
@@ -191,23 +196,15 @@ namespace Memo.Core.Notes
                 );
                 var noteId = new Note.NoteId(splitResult.TakeLast(1).First());
 
-                return (categoryId, noteId);
+                ids = (categoryId, noteId);
+                return true;
             }
             else
             {
-                // /path/to/root/category1/category2/test_note.markdown
-                // category id: category1/category2
-                // note id: test_note
- 
-                var categoryId = new Categories.CategoryId(
-                    relativePath
-                );
-
-                var noteId = new Note.NoteId(fileInfo.Name.Substring(0, fileInfo.Name.LastIndexOf(fileInfo.Extension)));
-
-                return (categoryId, noteId);
+                ids = default;
+                return false;
             }
-        }
+       }
 
         public async Task<(bool Success, string RawContent)> SerializeNoteAsync(Note note, CancellationToken token)
         {

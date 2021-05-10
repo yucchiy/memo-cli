@@ -67,14 +67,14 @@ namespace Memo
             builder.WithQueryStrings(request.Options);
 
             var note = await NoteService.CreateNoteAsync(builder.Build(), CancellationToken.None);
-            return ToResponse(note, new Dictionary<(Core.Categories.CategoryId, Core.Notes.Note.NoteId), List<(Core.Categories.CategoryId, Core.Notes.Note.NoteId)>>(0));
+            return ToResponse(note, null);
         }
 
         private MemoResponse ToResponse(Core.Notes.Note note, Dictionary<(Core.Categories.CategoryId, Core.Notes.Note.NoteId), List<(Core.Categories.CategoryId, Core.Notes.Note.NoteId)>> citations)
         {
-            var citation = citations.TryGetValue((note.Category.Id, note.Id), out var cite) ? 
-                cite.Select(c => $"{Manager.GetRoot().FullName}/{c.Item1.Value}/{c.Item2.Value}/index.markdown") :
-                new string[0];
+            var citation = (citations != null && citations.TryGetValue((note.Category.Id, note.Id), out var cite)) ?
+                cite.Select(c => $"{Manager.GetRoot().FullName}/{c.Item1.Value}/{c.Item2.Value}/{c.Item2.Value}.markdown") :
+                new string[0] as IEnumerable<string>;
 
             return new MemoResponse()
             {
@@ -83,8 +83,10 @@ namespace Memo
                 FilePath = $"{Manager.GetRoot().FullName}/{note.RelativePath}",
                 Title = note.Title.Value,
                 Type = (note.Type is Core.Notes.Note.NoteType noteType) ? noteType.Value : string.Empty,
-                InternalLinks = note.InternalLinks.Select(c => $"{Manager.GetRoot().FullName}/{c.Item1.Value}/{c.Item2.Value}/index.markdown"),
-                Links = note.Links,
+                InternalLinks = note.InternalLinks != null ?
+                    note.InternalLinks.Select(c => $"{Manager.GetRoot().FullName}/{c.Item1.Value}/{c.Item2.Value}/{c.Item2.Value}.markdown") :
+                    new string[0],
+                Links = note.Links != null ? note.Links : new string[0],
                 Citations = citation,
             };
         }
@@ -106,7 +108,7 @@ namespace Memo
             public string Type { get; set; }
             public IEnumerable<string> Links { get; set; }
             public IEnumerable<string> InternalLinks { get; set; }
-            public IEnumerable<string>  Citations { get; set; }
+            public IEnumerable<string> Citations { get; set; }
         }
     }
 }
