@@ -82,8 +82,8 @@ namespace Memo.Core.Notes
                 .WithLinks(links.Where(link => link.Length > 4 && link.IndexOf("http") == 0))
                 .WithInternalLinks(
                     links
-                        .Select(link => TryParseLink(link, out var cid, out var nid) ? (cid, nid) : default)
-                        .Where(link => !string.IsNullOrEmpty(link.cid.Value) && !string.IsNullOrEmpty(link.nid.Value))
+                        .Select(link => TryParseLink(link, out var internalLink) ? internalLink : string.Empty)
+                        .Where(link => !string.IsNullOrEmpty(link))
                 );
 
             if (frontMatters.TryGetValue(kFrontMatterKeyTitle, out var noteTitle))
@@ -154,11 +154,9 @@ namespace Memo.Core.Notes
             return (frontMatters, links);
         }
 
-        private bool TryParseLink(string link, out Categories.CategoryId categoryId, out Note.NoteId noteId)
+        private bool TryParseLink(string link, out string internalLink)
         {
-            categoryId = default;
-            noteId = default;
-
+            internalLink = default;
             if (link.Length > 4 && link.IndexOf("http") == 0)
             {
                 return false;
@@ -170,11 +168,7 @@ namespace Memo.Core.Notes
                 return false;
             }
 
-            categoryId = new Categories.CategoryId(
-                string.Join(Option.NoteDirectorySeparator, splitResult.SkipLast(2))
-            );
-            noteId = new Note.NoteId(splitResult.TakeLast(2).First());
-
+            internalLink = link;
             return true;
         }
 

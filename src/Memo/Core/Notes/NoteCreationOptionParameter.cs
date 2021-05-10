@@ -20,7 +20,7 @@ namespace Memo.Core.Notes
         public readonly NoteCreationType? CreationType { get; }
         public readonly string? Url { get; }
         public readonly IEnumerable<string> Links { get; }
-        public readonly IEnumerable<(Categories.CategoryId, Note.NoteId)> InternalLinks { get; }
+        public readonly IEnumerable<string> InternalLinks { get; }
 
         public NoteCreationOptionParameter(
             Note.NoteTimestamp timestamp,
@@ -30,7 +30,7 @@ namespace Memo.Core.Notes
             NoteCreationType? creationType,
             string? url,
             IEnumerable<string> links,
-            IEnumerable<(Categories.CategoryId, Note.NoteId)> internalLinks)
+            IEnumerable<string> internalLinks)
         {
             Timestamp = timestamp;
             Slug = slug;

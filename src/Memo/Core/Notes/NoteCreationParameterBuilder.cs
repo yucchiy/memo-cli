@@ -53,7 +53,7 @@ namespace Memo.Core.Notes
         private NoteCreationOptionParameter.NoteCreationType? CreationType { get; set; } = null;
         private string? Url { get; set; } = null;
         private IEnumerable<string> Links { get; set; } = new string[0];
-        private IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> InternalLinks { get; set; } = new (Categories.CategoryId CategoryId, Note.NoteId NoteId)[0];
+        private IEnumerable<string> InternalLinks { get; set; } = new string[0];
 
         public NoteCreationParameterBuilder WithCategoryId(string categoryId)
         {
@@ -123,7 +123,7 @@ namespace Memo.Core.Notes
             return this;
         }
 
-        public NoteCreationParameterBuilder WithInternalLinks(IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> internalLinks)
+        public NoteCreationParameterBuilder WithInternalLinks(IEnumerable<string> internalLinks)
         {
             InternalLinks = internalLinks;
             return this;

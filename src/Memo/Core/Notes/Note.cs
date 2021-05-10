@@ -88,11 +88,11 @@ namespace Memo.Core.Notes
         public NoteSlug Slug { get; }
         public NoteTimestamp Timestamp { get; }
         public IEnumerable<string> Links { get; }
-        public IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> InternalLinks { get; }
+        public IEnumerable<string> InternalLinks { get; }
 
         public string RelativePath { get => $"{Category.Id.Value}/{Id.Value}.markdown"; }
 
-        public Note(Categories.Category category, NoteTimestamp timestamp, NoteSlug slug, NoteTitle title, NoteType? type, IEnumerable<string> links, IEnumerable<(Categories.CategoryId CategoryId, Note.NoteId NoteId)> internalLinks)
+        public Note(Categories.Category category, NoteTimestamp timestamp, NoteSlug slug, NoteTitle title, NoteType? type, IEnumerable<string> links, IEnumerable<string> internalLinks)
         {
             Category = category;
             Title = title;

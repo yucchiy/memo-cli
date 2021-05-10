@@ -35,22 +35,23 @@ namespace Memo
             return notes.Select(note => ToResponse(note, citations));
         }
 
-        private Dictionary<(Core.Categories.CategoryId, Core.Notes.Note.NoteId), List<(Core.Categories.CategoryId, Core.Notes.Note.NoteId)>> BuildCitations(IEnumerable<Core.Notes.Note> notes)
+        private Dictionary<string, List<string>> BuildCitations(IEnumerable<Core.Notes.Note> notes)
         {
-            var citations = new Dictionary<(Core.Categories.CategoryId, Core.Notes.Note.NoteId), List<(Core.Categories.CategoryId, Core.Notes.Note.NoteId)>>();
+            var citations = new Dictionary<string, List<string>>();
             foreach (var note in notes)
             {
                 foreach (var internalLink in note.InternalLinks)
                 {
-                    if (citations.TryGetValue((internalLink.CategoryId, internalLink.NoteId), out var citation))
+                    if (citations.TryGetValue(internalLink, out var citation))
                     {
-                        citation.Add((note.Category.Id, note.Id));
+                        citation.Add(note.RelativePath);
                     }
                     else
                     {
-                        var addCitation = new List<(Core.Categories.CategoryId, Core.Notes.Note.NoteId)>();
-                        addCitation.Add((note.Category.Id, note.Id));
-                        citations.Add((internalLink.CategoryId, internalLink.NoteId), addCitation);
+                        var addCitation = new List<string>();
+                        addCitation.Add(note.RelativePath);
+                        System.Console.WriteLine($"Add cite: {note.RelativePath}");
+                        citations.Add(internalLink, addCitation);
                     }
                 }
            }
@@ -70,22 +71,19 @@ namespace Memo
             return ToResponse(note, null);
         }
 
-        private MemoResponse ToResponse(Core.Notes.Note note, Dictionary<(Core.Categories.CategoryId, Core.Notes.Note.NoteId), List<(Core.Categories.CategoryId, Core.Notes.Note.NoteId)>> citations)
+        private MemoResponse ToResponse(Core.Notes.Note note, Dictionary<string, List<string>> citations)
         {
-            var citation = (citations != null && citations.TryGetValue((note.Category.Id, note.Id), out var cite)) ?
-                cite.Select(c => $"{Manager.GetRoot().FullName}/{c.Item1.Value}/{c.Item2.Value}/{c.Item2.Value}.markdown") :
-                new string[0] as IEnumerable<string>;
+            var citation = (citations != null && citations.TryGetValue(note.RelativePath, out var cite)) ? cite : new string[0] as IEnumerable<string>;
 
             return new MemoResponse()
             {
                 Category = note.Category.Id.Value,
                 Id = note.Id.Value,
                 FilePath = $"{Manager.GetRoot().FullName}/{note.RelativePath}",
+                RelativePath = note.RelativePath,
                 Title = note.Title.Value,
                 Type = (note.Type is Core.Notes.Note.NoteType noteType) ? noteType.Value : string.Empty,
-                InternalLinks = note.InternalLinks != null ?
-                    note.InternalLinks.Select(c => $"{Manager.GetRoot().FullName}/{c.Item1.Value}/{c.Item2.Value}/{c.Item2.Value}.markdown") :
-                    new string[0],
+                InternalLinks = new string[0],
                 Links = note.Links != null ? note.Links : new string[0],
                 Citations = citation,
             };
@@ -104,6 +102,7 @@ namespace Memo
             public string Category { get; set; }
             public string Id { get; set; }
             public string FilePath { get; set; }
+            public string RelativePath { get; set; }
             public string Title { get; set; }
             public string Type { get; set; }
             public IEnumerable<string> Links { get; set; }
