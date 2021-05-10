@@ -28,7 +28,10 @@ namespace Memo.Core.Categories
 
         public async Task<IEnumerable<Category>> GetAllAsync(CancellationToken token)
         {
-            return (await NoteRepositoryGetAll.GetAllAsync(token))
+            var notes = await NoteRepositoryGetAll.GetAllAsync(token);
+            var categories = notes.Select(note => note.Category).Distinct();
+
+            return notes
                 .Select(note => note.Category)
                 .Distinct();
         }
