@@ -2,6 +2,6 @@ namespace Memo.Core.Categories
 {
     public interface ICategoryConfigStore
     {
-        MemoConfig.CategoryConfig GetConfig(Categories.Category category);
+        MemoConfig.CategoryConfig GetConfig(Categories.CategoryId category);
     }
 }

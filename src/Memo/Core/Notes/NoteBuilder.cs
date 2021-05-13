@@ -8,8 +8,11 @@ namespace Memo.Core.Notes
     {
         private static readonly string HumanReadableTimestampFormat = "yyyy/MM/dd";
 
-        public NoteBuilder()
+        private Categories.CategoryConfigStore CategoryConfigStore;
+
+        public NoteBuilder(Categories.CategoryConfigStore configStore)
         {
+            CategoryConfigStore = configStore;
         }
 
         public async Task<Note> BuildAsync(NoteCreationParameter parameter, CancellationToken token)
@@ -27,7 +30,18 @@ namespace Memo.Core.Notes
                     case NoteCreationOptionParameter.NoteCreationType.Url:
                         return await BuildUrlAsync(parameter, token);
                 }
-           }
+            }
+
+            var config = CategoryConfigStore.GetConfig(parameter.CategoryId);
+            switch (config.MemoCreationType)
+            {
+                case CreationType.Default:
+                    return BuildDefault(in parameter);
+                case CreationType.Daily:
+                    return BuildDaily(in parameter);
+                case CreationType.Weekly:
+                    return BuildWeekly(in parameter);
+            }
 
             return BuildDefault(in parameter);
         }
@@ -80,9 +94,9 @@ namespace Memo.Core.Notes
             var timestamp = parameter.Options.Timestamp is Note.NoteTimestamp ts ? ts : new Note.NoteTimestamp(System.DateTime.Now);
             var dailyTimestamp = new Note.NoteTimestamp(new System.DateTime(timestamp.Value.Year, timestamp.Value.Month, timestamp.Value.Day, System.Globalization.CultureInfo.CurrentCulture.Calendar));
 
-           var builder = new NoteCreationParameterBuilder(in parameter)
-                .WithCreationType(NoteCreationOptionParameter.NoteCreationType.Default)
-                .WithTimestamp(dailyTimestamp);
+            var builder = new NoteCreationParameterBuilder(in parameter)
+                 .WithCreationType(NoteCreationOptionParameter.NoteCreationType.Default)
+                 .WithTimestamp(dailyTimestamp);
 
             if (parameter.Options.Title is Note.NoteTitle title)
             {
@@ -128,7 +142,7 @@ namespace Memo.Core.Notes
             using (var client = new System.Net.Http.HttpClient())
             {
                 var response = await client.GetAsync(parameter.Options.Url, token);
-                switch (response.StatusCode) 
+                switch (response.StatusCode)
                 {
                     case System.Net.HttpStatusCode.OK:
                         builder.WithSlug(System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{uri.Scheme}://{uri.Host}/{uri.PathAndQuery}")));

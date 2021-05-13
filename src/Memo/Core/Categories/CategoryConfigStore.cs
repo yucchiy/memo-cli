@@ -11,17 +11,17 @@ namespace Memo.Core.Categories
             CategoryConfigs = categoryConfigs;
         }
 
-        public MemoConfig.CategoryConfig GetConfig(Category category)
+        public MemoConfig.CategoryConfig GetConfig(CategoryId categoryId)
         {
             foreach (var config in CategoryConfigs)
             {
-                if (config.Name == category.Id.Value)
+                if (config.Name == categoryId.Value)
                 {
                     return config;
                 }
             }
 
-            return MemoConfig.GetDefault(category.Id.Value, CreationType.Default);
+            return MemoConfig.GetDefault(categoryId.Value, CreationType.Default);
         }
     }
 }

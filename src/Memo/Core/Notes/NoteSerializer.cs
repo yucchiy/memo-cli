@@ -198,7 +198,7 @@ namespace Memo.Core.Notes
 
         public async Task<(bool Success, string RawContent)> SerializeNoteAsync(Note note, CancellationToken token)
         {
-            var config = CategoryConfigStore.GetConfig(note.Category);
+            var config = CategoryConfigStore.GetConfig(note.Category.Id);
             var template = Scriban.Template.ParseLiquid(await GetTemplate(Option.RootDirectory.FullName, config, token));
             var options = new Dictionary<string, string>();
 

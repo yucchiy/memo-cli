@@ -38,11 +38,14 @@ namespace Memo
             command.Handler = CommandHandler.Create(async (TInputType input, CancellationToken token) => await Execute(input, token));
             cli.RootCommand.AddCommand(command);
 
+            // TODO: use DI
+            var configStore = new Core.Categories.CategoryConfigStore(cli.CommandConfig.MemoConfig.Categories);
+            var noteBuilder = new Core.Notes.NoteBuilder(configStore);
             var noteRepository = new Core.Notes.NoteRepository(
                 new Core.Notes.NoteStorageFileSystemImpl(
                     new Core.Notes.NoteSerializer(
-                        new Core.Notes.NoteBuilder(),
-                        new Core.Categories.CategoryConfigStore(cli.CommandConfig.MemoConfig.Categories),
+                        noteBuilder,
+                        configStore,
                         (new Markdig.MarkdownPipelineBuilder())
                             .UseYamlFrontMatter().Build(),
                         new Core.Notes.NoteSerializer.Options(cli.CommandConfig.HomeDirectory, '/')
@@ -53,7 +56,7 @@ namespace Memo
             );
             var noteService = new Core.Notes.NoteService(
                 noteRepository,
-                new Core.Notes.NoteBuilder()
+                noteBuilder
             );
 
             var categoryService = new Core.Categories.CategoryService(
