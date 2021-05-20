@@ -1,185 +1,194 @@
-using System.CommandLine;
 using System.Threading;
 using System.Threading.Tasks;
-using Memo.Core;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 
 namespace Memo
 {
-    public class SaveCommand : CommandBase<SaveCommand.Input>
+    public class SaveCommand : Command
     {
-        public class Input : CommandInput
+        public class Input
         {
             public bool NoSync { get; set; }
         }
 
-        protected override Command CreateCommand()
+        public SaveCommand() : base("save")
         {
-            var command = new Command("save")
-            {
-                new Option<bool>(
-                    new string[] {"--no-sync"},
-                    () => false,
-                    "Without sync remote"
-                ),
-            };
-
-            return command;
+            AddOption(new Option<bool>(
+                new string[] {"--no-sync"},
+                () => false,
+                "Without Sync"
+            ));
         }
 
-        protected override async Task<int> ExecuteCommand(Input input, CancellationToken token)
+
+        public class CommandHandler : ICommandHandler
         {
-            using (var repository = new LibGit2Sharp.Repository(Context.CommandConfig.HomeDirectory.FullName))
+            public SaveCommand.Input Input { get; set; }
+            public Core.CommandConfig CommandConfig { get; }
+
+            public CommandHandler(SaveCommand.Input input, Core.CommandConfig commandConfig)
             {
-                if (!input.NoSync && !(await Pull(token))) return Cli.FailedExitCode;
-                if (!(await AddAllAndCommit(repository, token))) return Cli.FailedExitCode;
-                if (!input.NoSync && !(await Push(token))) return Cli.FailedExitCode;
+                Input = input;
+                CommandConfig = commandConfig;
             }
 
-            return Cli.SuccessExitCode;
-        }
-
-        private async Task<bool> Pull(CancellationToken token)
-        {
-            using var git = new GitCommand(Context.CommandConfig, "pull");
-            switch (await git.Execute(token))
+            public async Task<int> InvokeAsync(InvocationContext context)
             {
-                case GitCommand.SuccessExitCode:
-                    return true;
-                default:
-                    using (var _ = new UseColor(System.ConsoleColor.Red))
-                    {
-                        await Context.Output.WriteLineAsync("Failed to execute pull command following reason.");
-                    }
-
-                    using (var _ = new UseColor(System.ConsoleColor.Yellow))
-                    {
-                        await Context.Output.WriteLineAsync(await git.CollectStandardError());
-                    }
-                    return false;
-            }
-        }
-
-        private async Task<bool> AddAllAndCommit(LibGit2Sharp.Repository repository, CancellationToken token)
-        {
-            var author = new LibGit2Sharp.Signature(await GetGitConfig("user.name", token), await GetGitConfig("user.email", token), System.DateTime.Now);
-            var committer = author;
-
-            var status = repository.RetrieveStatus(new LibGit2Sharp.StatusOptions(){
-                // only supported above formats
-                PathSpec = new string[] {
-                    "*.json",
-                    "*.markdown",
-                    "*.md",
-                    "*.png",
-                    "*.jpg",
-                    "*.gif",
-                },
-            });
-
-            var count = 0;
-            using (var _ = new UseColor(System.ConsoleColor.Green))
-            {
-                foreach (var item in status)
+                var token = context.GetCancellationToken();
+                using (var repository = new LibGit2Sharp.Repository(CommandConfig.HomeDirectory.FullName))
                 {
-                    await Context.Output.WriteLineAsync(item.FilePath);
-                    count++;
+                    if (!Input.NoSync && !(await Pull(token))) return Cli.FailedExitCode;
+                    if (!(await AddAllAndCommit(repository, token))) return Cli.FailedExitCode;
+                    if (!Input.NoSync && !(await Push(token))) return Cli.FailedExitCode;
                 }
 
-                if (count > 0)
-                {
-                    LibGit2Sharp.Commands.Stage(repository, "*");
+                return Cli.SuccessExitCode;
+            }
 
-                    var commit = repository.Commit(
-                        "commit: " + System.DateTime.Now.ToString("r"),
-                        author, committer,
-                        new LibGit2Sharp.CommitOptions()
-                    );
+            private async Task<bool> Pull(CancellationToken token)
+            {
+                using var git = new GitCommand(CommandConfig, "pull");
+                switch (await git.Execute(token))
+                {
+                    case GitCommand.SuccessExitCode:
+                        return true;
+                    default:
+                        using (var _ = new UseColor(System.ConsoleColor.Red))
+                        {
+                            await System.Console.Out.WriteLineAsync("Failed to execute pull command following reason.");
+                        }
+
+                        using (var _ = new UseColor(System.ConsoleColor.Yellow))
+                        {
+                            await System.Console.Out.WriteLineAsync(await git.CollectStandardError());
+                        }
+                        return false;
                 }
             }
 
-            return true;
-        }
-
-        private async Task<string> GetGitConfig(string property, CancellationToken token)
-        {
-            using var git = new GitCommand(Context.CommandConfig, $"config {property}");
-            switch (await git.Execute(token))
+            private async Task<bool> AddAllAndCommit(LibGit2Sharp.Repository repository, CancellationToken token)
             {
-                case GitCommand.SuccessExitCode:
-                    return await git.CollectStandardOutput();
-                default:
-                    using (var _ = new UseColor(System.ConsoleColor.Red))
+                var author = new LibGit2Sharp.Signature(await GetGitConfig("user.name", token), await GetGitConfig("user.email", token), System.DateTime.Now);
+                var committer = author;
+
+                var status = repository.RetrieveStatus(new LibGit2Sharp.StatusOptions(){
+                    // only supported above formats
+                    PathSpec = new string[] {
+                        "*.json",
+                        "*.markdown",
+                        "*.md",
+                        "*.png",
+                        "*.jpg",
+                        "*.gif",
+                    },
+                });
+
+                var count = 0;
+                using (var _ = new UseColor(System.ConsoleColor.Green))
+                {
+                    foreach (var item in status)
                     {
-                        await Context.Output.WriteLineAsync("Failed to execute config command following reason.");
+                        await System.Console.Out.WriteLineAsync(item.FilePath);
+                        count++;
                     }
-                    using (var _ = new UseColor(System.ConsoleColor.Yellow))
+
+                    if (count > 0)
                     {
-                        await Context.Output.WriteLineAsync(await git.CollectStandardError());
+                        LibGit2Sharp.Commands.Stage(repository, "*");
+
+                        var commit = repository.Commit(
+                            "commit: " + System.DateTime.Now.ToString("r"),
+                            author, committer,
+                            new LibGit2Sharp.CommitOptions()
+                        );
                     }
+                }
 
-                    throw new MemoCliException($"Failed to execute config command. property = {property}");
+                return true;
             }
-        }
 
-        private async Task<bool> Push(CancellationToken token)
-        {
-            using var git = new GitCommand(Context.CommandConfig, "push");
-            switch (await git.Execute(token))
+            private async Task<string> GetGitConfig(string property, CancellationToken token)
             {
-                case GitCommand.SuccessExitCode:
-                    return true;
-                default:
-                    using (var _ = new UseColor(System.ConsoleColor.Red))
-                    {
-                        await Context.Output.WriteLineAsync("Failed to execute push command following reason.");
-                    }
-                    using (var _ = new UseColor(System.ConsoleColor.Yellow))
-                    {
-                        await Context.Output.WriteLineAsync(await git.CollectStandardError());
-                    }
-                    return false;
-            }
-        }
+                using var git = new GitCommand(CommandConfig, $"config {property}");
+                switch (await git.Execute(token))
+                {
+                    case GitCommand.SuccessExitCode:
+                        return await git.CollectStandardOutput();
+                    default:
+                        using (var _ = new UseColor(System.ConsoleColor.Red))
+                        {
+                            await System.Console.Out.WriteLineAsync("Failed to execute config command following reason.");
+                        }
+                        using (var _ = new UseColor(System.ConsoleColor.Yellow))
+                        {
+                            await System.Console.Out.WriteLineAsync(await git.CollectStandardError());
+                        }
 
-        private class GitCommand : System.IDisposable
-        {
-            public const int SuccessExitCode = 0;
-            public GitCommand(CommandConfig config, string arguments)
+                        throw new MemoCliException($"Failed to execute config command. property = {property}");
+                }
+            }
+
+            private async Task<bool> Push(CancellationToken token)
             {
-                _process = new System.Diagnostics.Process();
-                _process.StartInfo.WorkingDirectory = config.HomeDirectory.FullName;
-                _process.StartInfo.FileName = config.GitPath;
-                _process.StartInfo.Arguments = arguments;
-                _process.StartInfo.CreateNoWindow = true;
-                _process.StartInfo.UseShellExecute = false;
-                _process.StartInfo.RedirectStandardInput = true;
-                _process.StartInfo.RedirectStandardOutput = true;
-                _process.StartInfo.RedirectStandardError = true;
+                using var git = new GitCommand(CommandConfig, "push");
+                switch (await git.Execute(token))
+                {
+                    case GitCommand.SuccessExitCode:
+                        return true;
+                    default:
+                        using (var _ = new UseColor(System.ConsoleColor.Red))
+                        {
+                            await System.Console.Out.WriteLineAsync("Failed to execute push command following reason.");
+                        }
+                        using (var _ = new UseColor(System.ConsoleColor.Yellow))
+                        {
+                            await System.Console.Out.WriteLineAsync(await git.CollectStandardError());
+                        }
+                        return false;
+                }
             }
 
-            public async Task<int> Execute(CancellationToken token)
+            private class GitCommand : System.IDisposable
             {
-                _process.Start();
-                await _process.WaitForExitAsync(token);
-                return _process.ExitCode;
-            }
+                public const int SuccessExitCode = 0;
+                public GitCommand(Core.CommandConfig config, string arguments)
+                {
+                    _process = new System.Diagnostics.Process();
+                    _process.StartInfo.WorkingDirectory = config.HomeDirectory.FullName;
+                    _process.StartInfo.FileName = config.GitPath;
+                    _process.StartInfo.Arguments = arguments;
+                    _process.StartInfo.CreateNoWindow = true;
+                    _process.StartInfo.UseShellExecute = false;
+                    _process.StartInfo.RedirectStandardInput = true;
+                    _process.StartInfo.RedirectStandardOutput = true;
+                    _process.StartInfo.RedirectStandardError = true;
+                }
 
-            public async Task<string> CollectStandardError()
-            {
-                return await _process.StandardError.ReadToEndAsync();
-            }
+                public async Task<int> Execute(CancellationToken token)
+                {
+                    _process.Start();
+                    await _process.WaitForExitAsync(token);
+                    return _process.ExitCode;
+                }
 
-            public async Task<string> CollectStandardOutput()
-            {
-                return await _process.StandardOutput.ReadToEndAsync();
-            }
+                public async Task<string> CollectStandardError()
+                {
+                    return await _process.StandardError.ReadToEndAsync();
+                }
 
-            public void Dispose()
-            {
-                _process?.Dispose();
-            }
+                public async Task<string> CollectStandardOutput()
+                {
+                    return await _process.StandardOutput.ReadToEndAsync();
+                }
 
-            private System.Diagnostics.Process _process = null;
+                public void Dispose()
+                {
+                    _process?.Dispose();
+                }
+
+                private System.Diagnostics.Process _process = null;
+            }
         }
     }
 }

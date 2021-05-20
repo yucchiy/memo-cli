@@ -1,13 +1,13 @@
 using System.Collections.Generic;
-using System.CommandLine;
-using System.Threading;
 using System.Threading.Tasks;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 
 namespace Memo
 {
-    public class ListCommand : CommandBase<ListCommand.Input>
+    public class ListCommand : Command
     {
-        public class Input : CommandInput
+        public class Input
         {
             public string Category { get; set; }
             public IEnumerable<string> Queries { get; set; }
@@ -15,60 +15,70 @@ namespace Memo
             public string Format { get; set; }
         }
 
-        protected override Command CreateCommand()
+        public ListCommand() : base("list")
         {
-            var command = new Command("list")
-            {
-                new Option<string>(
-                    new string[] {"--category", "-c"},
-                    () => string.Empty,
-                    "Filter list by category name with regular expression"
-                ),
-                new Option<IEnumerable<string>>(
-                    new string[] {"--queries", "-q"},
-                    () => new string[]{},
-                    "Filter list by type with regular expression"
-                ),
-                new Option<bool>(
-                    new string[] {"--relative", "-r"},
-                    () => false,
-                    "Show relative paths from $MEMO_CLI_HOME directory"
-                ),
-                new Option<string>(
-                    new string[] {"--format", "-f"},
-                    () => string.Empty,
-                    "Specified output format"
-                ),
-            };
-            command.AddAlias("ls");
-
-            return command;
+            AddOption(new Option<string>(
+                new string[] {"--category", "-c"},
+                () => string.Empty,
+                "Filter list by category name with regular expression"
+            ));
+            AddOption(new Option<IEnumerable<string>>(
+                new string[] {"--queries", "-q"},
+                () => new string[]{},
+                "Filter list by type with regular expression"
+            ));
+            AddOption(new Option<bool>(
+                new string[] {"--relative", "-r"},
+                () => false,
+                "Show relative paths from $MEMO_CLI_HOME directory"
+            ));
+            AddOption(new Option<string>(
+                new string[] {"--format", "-f"},
+                () => string.Empty,
+                "Specified output format"
+            ));
+            AddAlias("ls");
         }
 
-        protected override async Task<int> ExecuteCommand(Input input, CancellationToken token)
+        public class CommandHandler : ICommandHandler
         {
-            var parameter = new Core.Notes.NoteSearchQueryBuilder();
-            if (!string.IsNullOrEmpty(input.Category))
-            {
-                parameter.WithCategoryId(new Core.Categories.CategoryId(input.Category));
-            }
-            parameter.WithQueryStrings(input.Queries);
+            // From DI
+            public ListCommand.Input Input { get; set; }
+            private Core.CommandConfig CommandConfig { get; }
+            private Core.Notes.INoteService NoteService { get; }
 
-            var notes = await Context.NoteService.GetNotesAsync(parameter.Build(), token);
-            
-            return await Show(notes, string.IsNullOrEmpty(input.Format) ? "{{ path }}" : input.Format, input.Relative);
-        }
-
-        private async Task<int> Show(IEnumerable<Core.Notes.Note> notes, string format, bool withRelativePath)
-        {
-            var template = Scriban.Template.ParseLiquid(format);
-            foreach (var note in notes)
+            public CommandHandler(Core.CommandConfig commandConfig, Core.Notes.INoteService noteService)
             {
-                var path = withRelativePath ? note.RelativePath : $"{Context.CommandConfig.HomeDirectory.FullName}/{note.RelativePath}";
-                await Context.Output.WriteLineAsync(template.Render(new { Path = path, Category = note.Category.Id.Value, Type = note.Type?.Value, Created = note.Timestamp, Title = note.Title.Value }));
+                NoteService = noteService;
+                CommandConfig = commandConfig;
             }
-            
-            return Cli.SuccessExitCode;
+
+            public async Task<int> InvokeAsync(InvocationContext context)
+            {
+                var token = context.GetCancellationToken();
+                var parameter = new Core.Notes.NoteSearchQueryBuilder();
+                if (!string.IsNullOrEmpty(Input.Category))
+                {
+                    parameter.WithCategoryId(new Core.Categories.CategoryId(Input.Category));
+                }
+                parameter.WithQueryStrings(Input.Queries);
+
+                var notes = await NoteService.GetNotesAsync(parameter.Build(), token);
+                
+                return await Show(notes, string.IsNullOrEmpty(Input.Format) ? "{{ path }}" : Input.Format, Input.Relative);
+            }
+
+            private async Task<int> Show(IEnumerable<Core.Notes.Note> notes, string format, bool withRelativePath)
+            {
+                var template = Scriban.Template.ParseLiquid(format);
+                foreach (var note in notes)
+                {
+                    var path = withRelativePath ? note.RelativePath : $"{CommandConfig.HomeDirectory.FullName}/{note.RelativePath}";
+                    await System.Console.Out.WriteLineAsync(template.Render(new { Path = path, Category = note.Category.Id.Value, Type = note.Type?.Value, Created = note.Timestamp, Title = note.Title.Value }));
+                }
+                
+                return Cli.SuccessExitCode;
+            }
         }
     }
 }

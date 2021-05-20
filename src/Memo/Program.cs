@@ -8,7 +8,8 @@ namespace Memo
     {
         static async Task<int> Main(string[] args)
         {
-            if (args.Length == 0) return await Cli.CreateCommandLineParser().InvokeAsync(args);
+            var cli = new Cli();
+            if (args.Length == 0) return await cli.ExecuteAsync(args);
             else if (args[0] == "api")
             {
                 try
@@ -22,7 +23,7 @@ namespace Memo
                 }
                 return Cli.SuccessExitCode;
             }
-            else return await Cli.CreateCommandLineParser().InvokeAsync(args);
+            else return await cli.ExecuteAsync(args);
         }
     }
 }

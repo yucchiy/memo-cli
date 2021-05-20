@@ -8,11 +8,11 @@ namespace Memo.Core.Notes
     {
         private static readonly string HumanReadableTimestampFormat = "yyyy/MM/dd";
 
-        private Categories.CategoryConfigStore CategoryConfigStore;
+        private Categories.ICategoryConfigStore CategoryConfigStore;
 
-        public NoteBuilder(Categories.CategoryConfigStore configStore)
+        public NoteBuilder(Categories.ICategoryConfigStore categoryConfigStore)
         {
-            CategoryConfigStore = configStore;
+            CategoryConfigStore = categoryConfigStore;
         }
 
         public async Task<Note> BuildAsync(NoteCreationParameter parameter, CancellationToken token)

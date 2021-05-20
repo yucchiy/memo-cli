@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Markdig;
 using Memo.Core;
 
 namespace Memo
@@ -26,37 +25,19 @@ namespace Memo
             {
                 var config = new CommandConfig();
 
-                // TODO: using DI Container
-                var configStore = new Core.Categories.CategoryConfigStore(config.MemoConfig.Categories);
-                var noteBuilder = new Core.Notes.NoteBuilder(configStore);
-                var noteRepository = new Core.Notes.NoteRepository(
-                    new Core.Notes.NoteStorageFileSystemImpl(
-                        new Core.Notes.NoteSerializer(
-                            noteBuilder,
-                            configStore,
-                            (new Markdig.MarkdownPipelineBuilder())
-                                .UseYamlFrontMatter().Build(),
-                            new Core.Notes.NoteSerializer.Options(config.HomeDirectory, '/')
-                        ),
-                        new Core.Notes.NoteStorageFileSystemImpl.Options(config.HomeDirectory)
-                    ),
-                    new Core.Notes.NoteQueryFilter()
-                );
-                var noteService = new Core.Notes.NoteService(
-                    noteRepository,
-                    noteBuilder
-                );
-
-                var categoryService = new Core.Categories.CategoryService(
-                    new Core.Categories.CategoryRepository(noteRepository)
-                );
-
                 services.AddMvc();
-                services.AddScoped<IMemoManager, MemoManager>();
-                services.AddSingleton<Core.Categories.ICategoryService>(categoryService);
-                services.AddSingleton<Core.Notes.INoteService>(noteService);
-            }
 
+                services.AddSingleton<CommandConfig>();
+                services.AddSingleton<Core.Categories.ICategoryConfigStore, Core.Categories.CategoryConfigStore>();
+                services.AddSingleton<Core.Notes.INoteBuilder, Core.Notes.NoteBuilder>();
+                services.AddSingleton<Core.Notes.INoteSerializer, Core.Notes.NoteSerializer>();
+                services.AddSingleton<Core.Notes.INoteQueryFilter, Core.Notes.NoteQueryFilter>();
+                services.AddSingleton<Core.Notes.INoteStorage, Core.Notes.NoteStorageFileSystemImpl>();
+                services.AddSingleton<Core.Notes.INoteRepository, Core.Notes.NoteRepository>();
+                services.AddSingleton<Core.Notes.INoteService, Core.Notes.NoteService>();
+                services.AddSingleton<Core.Categories.ICategoryRepository, Core.Categories.CategoryRepository>();
+                services.AddSingleton<Core.Categories.ICategoryService, Core.Categories.CategoryService>();
+            }
             public void Configure(IApplicationBuilder application, IWebHostEnvironment environment)
             {
                 if (environment.IsDevelopment())

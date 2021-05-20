@@ -2,7 +2,9 @@ using System.Threading.Tasks;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.CommandLine.Builder;
-using System.IO;
+using System.CommandLine.Hosting;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Memo.Core;
 
 namespace Memo
@@ -12,10 +14,7 @@ namespace Memo
         public static readonly int SuccessExitCode = 0;
         public static readonly int FailedExitCode = 1;
 
-        public RootCommand RootCommand { get; }
-        public CommandConfig CommandConfig { get; }
-        public TextWriter Output { get; }
-        private IMemoCommand[] MemoCommands { get; }
+        private RootCommand RootCommand { get; }
 
         public Cli()
         {
@@ -27,38 +26,63 @@ namespace Memo
                 "Disable colorized output"
             ));
 
-            CommandConfig = new CommandConfig();
-            Output = System.Console.Out;
+            RootCommand.AddCommand(new NewCommand());
+            RootCommand.AddCommand(new ConfigCommand());
+            RootCommand.AddCommand(new ListCommand());
+            RootCommand.AddCommand(new ListCategoryCommand());
+            RootCommand.AddCommand(new SaveCommand());
+        }
 
-            MemoCommands = new IMemoCommand[]
+        public async Task<int> ExecuteAsync(string[] arguments)
+        {
+            var builder = new CommandLineBuilder(RootCommand);
+            builder.UseDefaults();
+            builder.UseHost(host => 
             {
-                new NewCommand(),
-                new ConfigCommand(),
-                new ListCommand(),
-                new ListCategoryCommand(),
-                new SaveCommand(),
-            };
+                host.ConfigureServices((context, services) =>
+                {
+                    services.AddSingleton<CommandConfig>();
+                    services.AddSingleton<Core.Categories.ICategoryConfigStore, Core.Categories.CategoryConfigStore>();
+                    services.AddSingleton<Core.Notes.INoteBuilder, Core.Notes.NoteBuilder>();
+                    services.AddSingleton<Core.Notes.INoteSerializer, Core.Notes.NoteSerializer>();
+                    services.AddSingleton<Core.Notes.INoteQueryFilter, Core.Notes.NoteQueryFilter>();
+                    services.AddSingleton<Core.Notes.INoteStorage, Core.Notes.NoteStorageFileSystemImpl>();
+                    services.AddSingleton<Core.Notes.INoteRepository, Core.Notes.NoteRepository>();
+                    services.AddSingleton<Core.Notes.INoteService, Core.Notes.NoteService>();
+                    services.AddSingleton<Core.Categories.ICategoryRepository, Core.Categories.CategoryRepository>();
+                    services.AddSingleton<Core.Categories.ICategoryService, Core.Categories.CategoryService>();
+                });
 
-            foreach (var memoCommand in MemoCommands)
+                host.UseCommandHandler<NewCommand, NewCommand.CommandHandler>();
+                host.UseCommandHandler<ConfigCommand, ConfigCommand.CommandHandler>();
+                host.UseCommandHandler<ListCommand, ListCommand.CommandHandler>();
+                host.UseCommandHandler<ListCategoryCommand, ListCategoryCommand.CommandHandler>();
+                host.UseCommandHandler<SaveCommand, SaveCommand.CommandHandler>();
+            });
+
+            var parser = builder.Build();
+
+            try
             {
-                memoCommand.Setup(this);
+                return await parser.InvokeAsync(arguments);
             }
-        }
+            catch (MemoCliException memoCliException)
+            {
+                using (var _ = new UseColor(System.ConsoleColor.Red))
+                {
+                    await System.Console.Out.WriteLineAsync(memoCliException.Message);
+                }
+            }
+            catch (System.Exception unhandledException)
+            {
+                using (var _ = new UseColor(System.ConsoleColor.Red))
+                {
+                    await System.Console.Out.WriteLineAsync(string.Format("Internal Error: {0}({1})", unhandledException.GetType().ToString(), unhandledException.Message));
+                    await System.Console.Out.WriteLineAsync(string.Format("{0}", unhandledException.StackTrace));
+                }
+            }
 
-        public async Task<int> Execute(string[] arguments)
-        {
-            return await RootCommand.InvokeAsync(arguments);
-        }
-
-        public static Parser CreateCommandLineParser()
-        {
-            var cli = new Cli();
-
-            return new CommandLineBuilder(
-                cli.RootCommand
-            )
-                .UseDefaults()
-                .Build();
+            return Cli.FailedExitCode;
         }
     }
 }

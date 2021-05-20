@@ -9,6 +9,7 @@ namespace Memo.Core
         public DirectoryInfo HomeDirectory { get; }
         public string GitPath { get; }
         public MemoConfig MemoConfig { get; }
+        public char DirectorySeparator { get; }
 
         public CommandConfig()
         {
@@ -29,6 +30,8 @@ namespace Memo.Core
             {
                 GitPath = "git";
             }
+
+            DirectorySeparator = '/';
 
             var configFile = new FileInfo(Path.Combine(HomeDirectory.FullName, ".config.json"));
             if (configFile.Exists)

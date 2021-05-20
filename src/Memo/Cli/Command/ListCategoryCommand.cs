@@ -1,34 +1,41 @@
-using System.Linq;
-using System.CommandLine;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Threading;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 
 namespace Memo
 {
-    public class ListCategoryCommand : CommandBase<ListCategoryCommand.Input>
+    public class ListCategoryCommand : Command
     {
-        public class Input : CommandInput
+        public class Input
         {
             public string Category { get; set; }
         }
 
-        protected override Command CreateCommand()
+        public ListCategoryCommand() : base("list-category")
         {
-            var command = new Command("list-category");
-            command.AddAlias("ls-category");
-
-            return command;
+            AddAlias("ls-category");
         }
 
-        protected override async Task<int> ExecuteCommand(Input input, CancellationToken token)
+        public class CommandHandler : ICommandHandler
         {
-            foreach (var category in await Context.CategoryService.GetAllAsync(token))
+            public ListCategoryCommand.Input Input { get; set; }
+            private Core.Categories.ICategoryService CategoryService { get; }
+
+            public CommandHandler(Core.Categories.ICategoryService categoryService)
             {
-                await Context.Output.WriteAsync(string.Format("{0}\n", category.Id));
+                CategoryService = categoryService;
             }
 
-            return Cli.SuccessExitCode;
+            public async Task<int> InvokeAsync(InvocationContext context)
+            {
+                var token = context.GetCancellationToken();
+                foreach (var category in await CategoryService.GetAllAsync(token))
+                {
+                    await System.Console.Out.WriteAsync(string.Format("{0}\n", category.Id.Value));
+                }
+
+                return Cli.SuccessExitCode;
+            }
         }
     }
 }

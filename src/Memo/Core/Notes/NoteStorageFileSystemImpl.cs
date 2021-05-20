@@ -10,13 +10,13 @@ namespace Memo.Core.Notes
         private INoteSerializer Serializer { get; }
         private Options Option { get; }
 
-        public NoteStorageFileSystemImpl(INoteSerializer serializer, Options option)
+        public NoteStorageFileSystemImpl(INoteSerializer serializer, CommandConfig commandConfig)
         {
             Serializer = serializer;
-            Option = option;
+            Option = new Options(commandConfig.HomeDirectory, commandConfig.DirectorySeparator);
         }
 
-        public class Options
+        private class Options
         {
             public DirectoryInfo RootDirectory { get; }
             public char NoteDirectorySeparator { get; }

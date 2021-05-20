@@ -25,7 +25,7 @@ namespace Memo.Core.Notes
         private MarkdownPipeline MarkdownPipeline { get; }
         private Options Option { get; }
 
-        public class Options
+        private class Options
         {
             public DirectoryInfo RootDirectory { get; }
             public char NoteDirectorySeparator { get; }
@@ -37,7 +37,7 @@ namespace Memo.Core.Notes
             }
         }
 
-        public NoteSerializer(INoteBuilder noteBuilder, Categories.ICategoryConfigStore categoryConfigStore, Options option)
+        public NoteSerializer(INoteBuilder noteBuilder, Categories.ICategoryConfigStore categoryConfigStore, CommandConfig commandConfig)
         {
             NoteBuilder = noteBuilder;
             CategoryConfigStore = categoryConfigStore;
@@ -45,15 +45,7 @@ namespace Memo.Core.Notes
                 .UseYamlFrontMatter()
                 .UseAdvancedExtensions()
                 .Build();
-            Option = option;
-        }
-
-        public NoteSerializer(INoteBuilder noteBuilder, Categories.ICategoryConfigStore categoryConfigStore, MarkdownPipeline markdownPipeline, Options option)
-        {
-            NoteBuilder = noteBuilder;
-            CategoryConfigStore = categoryConfigStore;
-            MarkdownPipeline = markdownPipeline;
-            Option = option;
+            Option = new Options(commandConfig.HomeDirectory, commandConfig.DirectorySeparator);
         }
 
         // (result, note)

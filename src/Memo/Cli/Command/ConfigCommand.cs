@@ -1,47 +1,53 @@
 using System.CommandLine;
-using System.Threading;
 using System.Threading.Tasks;
+using System.CommandLine.Invocation;
 
 namespace Memo
 {
-    public class ConfigCommand : CommandBase<ConfigCommand.Input>
+    public class ConfigCommand : Command
     {
-        public class Input : CommandInput
+        public class Input
         {
             public string Key { get; set; }
         }
 
-        protected override Command CreateCommand()
+        public ConfigCommand()
+            : base("config")
         {
-            var command = new Command("config")
-            {
-                new Argument<string>(
-                    "key",
-                    "Config key"
-                )
-            };
-
-            return command;
+            AddArgument(new Argument<string>(
+                "key",
+                "Config key"
+            ));
         }
 
-        protected override async Task<int> ExecuteCommand(Input input, CancellationToken token)
+        public class CommandHandler : ICommandHandler
         {
-            switch (input.Key)
-            {
-                case "home":
-                    await Context.Output.WriteLineAsync(Context.CommandConfig.HomeDirectory.FullName);
-                    break;
-                default:
-                    using (var _ = new UseColor(System.ConsoleColor.Red))
-                    {
-                        await Context.Output.WriteLineAsync(string.Format("{0}: No such config found.", input.Key));
-                    }
+            public ConfigCommand.Input Input { get; set; }
+            private Core.CommandConfig CommandConfig { get; }
 
-                    return Cli.FailedExitCode;
+            public CommandHandler(Core.CommandConfig commandConfig)
+            {
+                CommandConfig = commandConfig;
             }
 
+            public async Task<int> InvokeAsync(InvocationContext context)
+            {
+                switch (Input.Key)
+                {
+                    case "home":
+                        await System.Console.Out.WriteLineAsync(CommandConfig.HomeDirectory.FullName);
+                        break;
+                    default:
+                        using (var _ = new UseColor(System.ConsoleColor.Red))
+                        {
+                            await System.Console.Out.WriteLineAsync(string.Format("{0}: No such config found.", Input.Key));
+                        }
 
-            return Cli.SuccessExitCode;
+                        return Cli.FailedExitCode;
+                }
+
+                return Cli.SuccessExitCode;
+            }
         }
     }
 }

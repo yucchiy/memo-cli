@@ -7,11 +7,11 @@ namespace Memo.Core.Categories
 {
     public class CategoryRepository : ICategoryRepository
     {
-        Notes.INoteRepositoryGetAll NoteRepositoryGetAll { get; }
+        Notes.INoteRepository NoteRepository { get; }
 
-        public CategoryRepository(Notes.INoteRepositoryGetAll noteRepositoryGetAll)
+        public CategoryRepository(Notes.INoteRepository noteRepository)
         {
-            NoteRepositoryGetAll = noteRepositoryGetAll;
+            NoteRepository = noteRepository;
         }
 
         public async Task<Category?> FindAsync(CategoryId id, CancellationToken token)
@@ -28,7 +28,7 @@ namespace Memo.Core.Categories
 
         public async Task<IEnumerable<Category>> GetAllAsync(CancellationToken token)
         {
-            var notes = await NoteRepositoryGetAll.GetAllAsync(token);
+            var notes = await NoteRepository.GetAllAsync(token);
             var categories = notes.Select(note => note.Category).Distinct();
 
             return notes

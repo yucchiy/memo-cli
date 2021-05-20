@@ -6,9 +6,9 @@ namespace Memo.Core.Categories
     {
         private IEnumerable<MemoConfig.CategoryConfig> CategoryConfigs;
 
-        public CategoryConfigStore(IEnumerable<MemoConfig.CategoryConfig> categoryConfigs)
+        public CategoryConfigStore(CommandConfig commandConfig)
         {
-            CategoryConfigs = categoryConfigs;
+            CategoryConfigs = commandConfig.MemoConfig.Categories;
         }
 
         public MemoConfig.CategoryConfig GetConfig(CategoryId categoryId)
