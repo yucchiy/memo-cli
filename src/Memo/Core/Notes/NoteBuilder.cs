@@ -42,8 +42,6 @@ namespace Memo.Core.Notes
                     return BuildDaily(in parameter);
                 case CreationType.Weekly:
                     return BuildWeekly(in parameter);
-                case CreationType.Url:
-                    return await BuildUrlAsync(parameter, token);
             }
 
             return BuildDefault(in parameter);

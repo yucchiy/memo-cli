@@ -106,14 +106,14 @@ namespace Memo.Core.Notes
                         var content = line.ToString();
 
                         var splitResult = content.Split(FrontMatterSeparator);
-                        if (splitResult.Length != 2)
+                        if (splitResult.Length < 2)
                         {
                             continue;
                         }
 
                         var frontMatterKey = splitResult[0].Trim();
                         // ` "this is a test"` => `"this is a test"` => `this is a test`
-                        var frontMatterValue = splitResult[1].Trim().Trim('"');
+                        var frontMatterValue = string.Join(FrontMatterSeparator, splitResult.Skip(1));
 
                         frontMatters.Add(frontMatterKey, frontMatterValue);
                     }

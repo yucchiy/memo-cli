@@ -5,6 +5,5 @@ namespace Memo.Core
         Default,
         Daily,
         Weekly,
-        Url,
     }
 }
