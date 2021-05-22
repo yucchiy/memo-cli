@@ -20,14 +20,19 @@ namespace Memo.Core.Notes
 
         public async Task<Note> SaveAsync(Note note, CancellationToken token)
         {
-            if (await FindAsync(note.Category.Id, note.Id, token) is Note result)
+            try
             {
-                return result;
+                if (await FindAsync(note.Category.Id, note.Id, token) is Note result)
+                {
+                    return result;
+                }
             }
-
-            if (await Storage.WriteAsync(note, token))
+            catch(MemoCliException)
             {
-                return note;
+                if (await Storage.WriteAsync(note, token))
+                {
+                    return note;
+                }
             }
 
             throw new MemoCliException("Failed to save note");

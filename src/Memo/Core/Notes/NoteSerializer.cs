@@ -113,7 +113,7 @@ namespace Memo.Core.Notes
 
                         var frontMatterKey = splitResult[0].Trim();
                         // ` "this is a test"` => `"this is a test"` => `this is a test`
-                        var frontMatterValue = string.Join(FrontMatterSeparator, splitResult.Skip(1));
+                        var frontMatterValue = string.Join(FrontMatterSeparator, splitResult.Skip(1)).Trim().Trim('"');
 
                         frontMatters.Add(frontMatterKey, frontMatterValue);
                     }
