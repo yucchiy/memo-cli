@@ -27,9 +27,8 @@ namespace Memo
             public SaveCommand.Input Input { get; set; }
             public Core.CommandConfig CommandConfig { get; }
 
-            public CommandHandler(SaveCommand.Input input, Core.CommandConfig commandConfig)
+            public CommandHandler(Core.CommandConfig commandConfig)
             {
-                Input = input;
                 CommandConfig = commandConfig;
             }
 
