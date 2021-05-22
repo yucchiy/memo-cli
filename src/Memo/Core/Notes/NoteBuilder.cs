@@ -7,6 +7,7 @@ namespace Memo.Core.Notes
     public class NoteBuilder : INoteBuilder
     {
         private static readonly string HumanReadableTimestampFormat = "yyyy/MM/dd";
+        private static readonly string TimestampBasedSlugFormat = "yyyyMMddHHmmss";
 
         private Categories.ICategoryConfigStore CategoryConfigStore;
 
@@ -41,6 +42,8 @@ namespace Memo.Core.Notes
                     return BuildDaily(in parameter);
                 case CreationType.Weekly:
                     return BuildWeekly(in parameter);
+                case CreationType.Url:
+                    return await BuildUrlAsync(parameter, token);
             }
 
             return BuildDefault(in parameter);
@@ -96,6 +99,7 @@ namespace Memo.Core.Notes
 
             var builder = new NoteCreationParameterBuilder(in parameter)
                  .WithCreationType(NoteCreationOptionParameter.NoteCreationType.Default)
+                 .WithSlug(dailyTimestamp.Value.ToString(TimestampBasedSlugFormat))
                  .WithTimestamp(dailyTimestamp);
 
             if (parameter.Options.Title is Note.NoteTitle title)
@@ -115,6 +119,7 @@ namespace Memo.Core.Notes
             var timestamp = new Note.NoteTimestamp(Utility.FirstDayOfWeek());
             var builder = new NoteCreationParameterBuilder(in parameter)
                 .WithCreationType(NoteCreationOptionParameter.NoteCreationType.Default)
+                .WithSlug(timestamp.Value.ToString(TimestampBasedSlugFormat))
                 .WithTimestamp(timestamp);
 
             if (parameter.Options.Title is Note.NoteTitle title)

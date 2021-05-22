@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -19,7 +21,7 @@ namespace Memo.Core.Notes
 
     public interface INoteRepositoryFind
     {
-        Task<Note?> FindAsync(Categories.CategoryId categoryId, Note.NoteId id, CancellationToken token);
+        Task<Note> FindAsync(Categories.CategoryId categoryId, Note.NoteId id, CancellationToken token);
     }
 
     public interface INoteRepositorySearch

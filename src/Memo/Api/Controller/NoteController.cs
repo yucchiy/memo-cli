@@ -12,11 +12,11 @@ namespace Memo
     public class NoteController : ControllerBase
     {
         private Core.Notes.INoteService NoteService { get; }
-        private IMemoManager Manager { get; }
-        public NoteController(Core.Notes.INoteService noteService, IMemoManager manager)
+        private Core.CommandConfig CommandConfig { get; }
+        public NoteController(Core.Notes.INoteService noteService, Core.CommandConfig commandConfig)
         {
             NoteService = noteService;
-            Manager = manager;
+            CommandConfig = commandConfig;
         }
 
         [HttpGet]
@@ -30,7 +30,7 @@ namespace Memo
             builder.WithQueryStrings(queries);
 
             var notes = await NoteService.GetNotesAsync(builder.Build(), CancellationToken.None);
-            var citations = BuildCitations(notes);
+            var citations = BuildCitations(await NoteService.GetNotesAsync((new Core.Notes.NoteSearchQueryBuilder().Build()), CancellationToken.None));
 
             return notes.Select(note => ToResponse(note, citations));
         }
@@ -78,13 +78,13 @@ namespace Memo
             {
                 Category = note.Category.Id.Value,
                 Id = note.Id.Value,
-                FilePath = $"{Manager.GetRoot().FullName}/{note.RelativePath}",
+                FilePath = $"{CommandConfig.HomeDirectory.FullName}/{note.RelativePath}",
                 RelativePath = note.RelativePath,
                 Title = note.Title.Value,
                 Type = (note.Type is Core.Notes.Note.NoteType noteType) ? noteType.Value : string.Empty,
                 InternalLinks = new string[0],
                 Links = note.Links != null ? note.Links : new string[0],
-                Citations = citation.Select(cite => $"{Manager.GetRoot().FullName}/{cite}"),
+                Citations = citation.Select(cite => $"{CommandConfig.HomeDirectory.FullName}/{cite}"),
             };
         }
 

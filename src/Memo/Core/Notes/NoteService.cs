@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +23,7 @@ namespace Memo.Core.Notes
             return await Repository.SaveAsync(note, token);
         }
 
-        public async Task<Note?> FindNoteAsync(Categories.CategoryId categoryId, Note.NoteId id, CancellationToken token)
+        public async Task<Note> FindNoteAsync(Categories.CategoryId categoryId, Note.NoteId id, CancellationToken token)
         {
             return await Repository.FindAsync(categoryId, id, token);
         }

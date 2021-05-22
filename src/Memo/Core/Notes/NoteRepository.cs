@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,7 +33,7 @@ namespace Memo.Core.Notes
             throw new MemoCliException("Failed to save note");
         }
 
-        public async Task<Note?> FindAsync(Categories.CategoryId categoryId, Note.NoteId id, CancellationToken token)
+        public async Task<Note> FindAsync(Categories.CategoryId categoryId, Note.NoteId id, CancellationToken token)
         {
             try
             {
@@ -40,7 +42,7 @@ namespace Memo.Core.Notes
             }
             catch (System.InvalidOperationException)
             {
-                return null;
+                throw new MemoCliException("No such note found.");
             }
         }
 

@@ -38,7 +38,7 @@ namespace Memo
                         await System.Console.Out.WriteLineAsync(CommandConfig.HomeDirectory.FullName);
                         break;
                     default:
-                        using (var _ = new UseColor(System.ConsoleColor.Red))
+                        using (new UseColor(System.ConsoleColor.Red))
                         {
                             await System.Console.Out.WriteLineAsync(string.Format("{0}: No such config found.", Input.Key));
                         }
