@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
+using System.Linq;
 
 namespace Memo.Core.Notes
 {
@@ -30,7 +31,10 @@ namespace Memo.Core.Notes
 
         public async Task<IEnumerable<Note>> ReadAllAsync(CancellationToken token)
         {
-            return await CollectNotesFromDirectory(Option.RootDirectory, token);
+            var notes = await CollectNotesFromDirectory(Option.RootDirectory, token);
+
+            return notes
+                .OrderByDescending(note => note.Timestamp.Value);
         }
 
         public async Task<bool> WriteAsync(Note note, CancellationToken token)
