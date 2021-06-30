@@ -166,7 +166,7 @@ namespace Memo.Core.Notes
 
         private bool TryParseId(FileInfo fileInfo, out (Categories.CategoryId CategoryId, Note.NoteTimestamp timestamp, Note.NoteSlug slug) ids)
         {
-            var relativePath = Path.GetRelativePath(Option.RootDirectory.FullName, fileInfo.Directory.FullName).Replace(Path.PathSeparator, Option.NoteDirectorySeparator);
+            var relativePath = Path.GetRelativePath(Option.RootDirectory.FullName, fileInfo.Directory.FullName).Replace(Path.DirectorySeparatorChar, Option.NoteDirectorySeparator);
             if (AcceptedExtensions.Contains(fileInfo.Extension))
             {
                 // /path/to/root/category1/category2/timestamp/slug.markdown
