@@ -73,7 +73,8 @@ namespace Memo
                 var template = Scriban.Template.ParseLiquid(format);
                 foreach (var note in notes)
                 {
-                    var path = withRelativePath ? note.RelativePath : $"{CommandConfig.HomeDirectory.FullName}/{note.RelativePath}";
+                    var noteRelativePath = note.RelativePath.Replace(CommandConfig.DirectorySeparator, System.IO.Path.DirectorySeparatorChar);
+                    var path = withRelativePath ? noteRelativePath: System.IO.Path.Combine(CommandConfig.HomeDirectory.FullName, noteRelativePath);
                     await System.Console.Out.WriteLineAsync(template.Render(new { Path = path, Category = note.Category.Id.Value, Type = note.Type?.Value, Created = note.Timestamp, Title = note.Title.Value }));
                 }
                 

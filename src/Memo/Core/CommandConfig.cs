@@ -36,7 +36,7 @@ namespace Memo.Core
             var configFile = new FileInfo(Path.Combine(HomeDirectory.FullName, ".config.json"));
             if (configFile.Exists)
             {
-                MemoConfig = JsonSerializer.Deserialize<MemoConfig>(new FileStream(configFile.FullName, FileMode.Open));
+                MemoConfig = JsonSerializer.Deserialize<MemoConfig>(new FileStream(configFile.FullName, FileMode.Open, FileAccess.Read));
             }
             else
             {

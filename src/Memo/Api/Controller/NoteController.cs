@@ -74,17 +74,18 @@ namespace Memo
         {
             var citation = (citations != null && citations.TryGetValue(note.RelativePath, out var cite)) ? cite : new string[0] as IEnumerable<string>;
 
+            var noteRelativePath = note.RelativePath.Replace(CommandConfig.DirectorySeparator, System.IO.Path.DirectorySeparatorChar);
             return new MemoResponse()
             {
                 Category = note.Category.Id.Value,
                 Id = note.Id.Value,
-                FilePath = $"{CommandConfig.HomeDirectory.FullName}/{note.RelativePath}",
+                FilePath = System.IO.Path.Combine(CommandConfig.HomeDirectory.FullName, noteRelativePath),
                 RelativePath = note.RelativePath,
                 Title = note.Title.Value,
                 Type = (note.Type is Core.Notes.Note.NoteType noteType) ? noteType.Value : string.Empty,
                 InternalLinks = new string[0],
                 Links = note.Links != null ? note.Links : new string[0],
-                Citations = citation.Select(cite => $"{CommandConfig.HomeDirectory.FullName}/{cite}"),
+                Citations = citation.Select(cite => System.IO.Path.Combine(CommandConfig.HomeDirectory.FullName, cite.Replace(CommandConfig.DirectorySeparator, System.IO.Path.DirectorySeparatorChar))),
             };
         }
 
