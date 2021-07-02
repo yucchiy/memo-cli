@@ -68,41 +68,11 @@ namespace Memo
 
             private async Task<bool> AddAllAndCommit(LibGit2Sharp.Repository repository, CancellationToken token)
             {
-                var author = new LibGit2Sharp.Signature(await GetGitConfig("user.name", token), await GetGitConfig("user.email", token), System.DateTime.Now);
-                var committer = author;
+                using var addCommand = new GitCommand(CommandConfig, @"add .");
+                await addCommand.Execute(token);
 
-                var status = repository.RetrieveStatus(new LibGit2Sharp.StatusOptions(){
-                    // only supported above formats
-                    PathSpec = new string[] {
-                        "*.json",
-                        "*.markdown",
-                        "*.md",
-                        "*.png",
-                        "*.jpg",
-                        "*.gif",
-                    },
-                });
-
-                var count = 0;
-                using (var _ = new UseColor(System.ConsoleColor.Green))
-                {
-                    foreach (var item in status)
-                    {
-                        await System.Console.Out.WriteLineAsync(item.FilePath);
-                        count++;
-                    }
-
-                    if (count > 0)
-                    {
-                        LibGit2Sharp.Commands.Stage(repository, "*");
-
-                        var commit = repository.Commit(
-                            "commit: " + System.DateTime.Now.ToString("r"),
-                            author, committer,
-                            new LibGit2Sharp.CommitOptions()
-                        );
-                    }
-                }
+                using var commitCommand = new GitCommand(CommandConfig, "commit -m \"" + "commit: " + System.DateTime.Now.ToString("r")+ "\"");
+                await commitCommand.Execute(token);
 
                 return true;
             }
@@ -153,6 +123,7 @@ namespace Memo
                 public const int SuccessExitCode = 0;
                 public GitCommand(Core.CommandConfig config, string arguments)
                 {
+                    System.Console.WriteLine(arguments);
                     _process = new System.Diagnostics.Process();
                     _process.StartInfo.WorkingDirectory = config.HomeDirectory.FullName;
                     _process.StartInfo.FileName = config.GitPath;
