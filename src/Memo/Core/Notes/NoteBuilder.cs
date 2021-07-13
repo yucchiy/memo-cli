@@ -114,7 +114,7 @@ namespace Memo.Core.Notes
 
         private Note BuildWeekly(in NoteCreationParameter parameter)
         {
-            var timestamp = new Note.NoteTimestamp(Utility.FirstDayOfWeek());
+            var timestamp = parameter.Options.Timestamp is Note.NoteTimestamp ts ? ts : new Note.NoteTimestamp(Utility.FirstDayOfWeek());
             var builder = new NoteCreationParameterBuilder(in parameter)
                 .WithCreationType(NoteCreationOptionParameter.NoteCreationType.Default)
                 .WithSlug(timestamp.Value.ToString(TimestampBasedSlugFormat))
